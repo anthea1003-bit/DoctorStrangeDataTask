@@ -1,0 +1,1603 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>奇異博士的資料異常修復任務 | iPAS AI應用規劃師科目二</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --dark: #0A0A14;
+    --dark2: #10101E;
+    --accent: #4CA8C9;
+    --accent2: #9B59B6;
+    --red: #C0392B;
+    --green: #27AE60;
+    --text: #E8E0D0;
+    --mck-blue: #1B3A6B;
+    --rune: #FF6B35;
+    --eye-color: #00E5CC;
+    --cloak-color: #8B2FC9;
+    --sling-color: #FF9500;
+    --py-bg: #1e1e2e;
+    --py-green: #A6E22E;
+    --py-blue: #66D9EF;
+    --py-orange: #FD971F;
+    --py-pink: #F92672;
+    --py-comment: #75715E;
+    --py-string: #E6DB74;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif TC', serif;
+    background: var(--dark);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── Custom Cursor ── */
+  #cursor {
+    position: fixed; width: 20px; height: 20px;
+    border: 2px solid var(--gold); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: width .2s, height .2s, border-color .2s;
+    mix-blend-mode: difference;
+  }
+  #cursor-dot {
+    position: fixed; width: 4px; height: 4px;
+    background: var(--gold); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+  }
+
+  /* ── Background ── */
+  #bg-canvas { position: fixed; inset: 0; z-index: 0; opacity: .4; }
+  .mck-grid {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(201,168,76,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Floating data particles ── */
+  .data-particle {
+    position: fixed; font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: rgba(201,168,76,.2);
+    pointer-events: none; z-index: 1;
+    animation: floatParticle linear infinite;
+  }
+  @keyframes floatParticle {
+    from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; } 90% { opacity: 1; }
+    to   { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+  }
+
+  /* ── INTRO ── */
+  #intro-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(ellipse at center, #1a0a2e 0%, var(--dark) 70%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity .8s, visibility .8s;
+  }
+  #intro-screen.hidden { opacity: 0; visibility: hidden; }
+
+  .portal-ring {
+    position: absolute; border-radius: 50%;
+    border: 2px solid var(--gold);
+    animation: portalSpin 3s linear infinite;
+  }
+  .portal-ring:nth-child(1){ width:200px; height:200px; animation-duration:3s; }
+  .portal-ring:nth-child(2){ width:250px; height:250px; animation-duration:4s; animation-direction:reverse; border-color:var(--eye-color); }
+  .portal-ring:nth-child(3){ width:300px; height:300px; animation-duration:5s; border-color:var(--cloak-color); opacity:.5; }
+  .portal-ring:nth-child(4){ width:350px; height:350px; animation-duration:7s; animation-direction:reverse; border-color:var(--sling-color); opacity:.3; }
+  @keyframes portalSpin { to { transform: rotate(360deg); } }
+
+  /* relic icons in intro */
+  .relic-intro-row {
+    display: flex; gap: 24px; margin-top: 16px; z-index: 10;
+  }
+  .relic-intro-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 11px; color: rgba(232,224,208,.5);
+    font-family: 'Share Tech Mono', monospace; letter-spacing: 1px;
+  }
+  .relic-intro-icon { font-size: 28px; animation: floatHero 3s ease-in-out infinite; }
+  .relic-intro-item:nth-child(2) .relic-intro-icon { animation-delay: .5s; }
+  .relic-intro-item:nth-child(3) .relic-intro-icon { animation-delay: 1s; }
+
+  .strange-hero {
+    font-size: 110px; line-height: 1; z-index: 10;
+    animation: floatHero 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(201,168,76,.8));
+    cursor: pointer; user-select: none;
+  }
+  @keyframes floatHero {
+    0%,100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-20px) rotate(3deg); }
+  }
+
+  .intro-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px, 3vw, 26px);
+    color: var(--gold); text-align: center; letter-spacing: 4px;
+    margin-top: 16px; z-index: 10;
+    text-shadow: 0 0 20px rgba(201,168,76,.8);
+  }
+  .intro-subtitle {
+    font-size: 13px; color: var(--eye-color); text-align: center;
+    letter-spacing: 5px; margin-top: 6px; z-index: 10;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .intro-desc {
+    max-width: 580px; text-align: center; margin-top: 20px;
+    line-height: 1.8; color: rgba(232,224,208,.8); z-index: 10; font-size: 14px;
+  }
+
+  .btn-start {
+    margin-top: 28px; padding: 14px 44px;
+    background: transparent; border: 2px solid var(--gold);
+    color: var(--gold); font-family: 'Orbitron', monospace;
+    font-size: 15px; letter-spacing: 4px; cursor: pointer;
+    z-index: 10; position: relative; overflow: hidden; transition: all .3s;
+  }
+  .btn-start::before {
+    content:''; position:absolute; inset:0;
+    background: var(--gold); transform: translateX(-100%);
+    transition: transform .3s; z-index: -1;
+  }
+  .btn-start:hover::before { transform: translateX(0); }
+  .btn-start:hover { color: var(--dark); }
+
+  /* ── HEADER ── */
+  #main-app { display: none; }
+  #main-app.show { display: block; }
+
+  .site-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,20,.95);
+    border-bottom: 1px solid rgba(201,168,76,.3);
+    backdrop-filter: blur(20px);
+    padding: 10px 36px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { font-size: 26px; }
+  .logo-text { font-family:'Orbitron',monospace; font-size:12px; color:var(--gold); letter-spacing:2px; }
+  .logo-sub  { font-size:9px; color:var(--eye-color); letter-spacing:3px; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .relic-status {
+    display: flex; gap: 8px;
+  }
+  .relic-badge {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all .5s; cursor: default;
+    filter: grayscale(1) opacity(.4);
+  }
+  .relic-badge.unlocked {
+    filter: none;
+    box-shadow: 0 0 14px currentColor;
+  }
+  .relic-badge.eye   { border-color: var(--eye-color);  color: var(--eye-color); }
+  .relic-badge.cloak { border-color: var(--cloak-color); color: var(--cloak-color); }
+  .relic-badge.sling { border-color: var(--sling-color); color: var(--sling-color); }
+
+  .stage-dots { display: flex; gap: 6px; }
+  .stage-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid rgba(201,168,76,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: rgba(201,168,76,.5);
+    font-family:'Orbitron',monospace; transition: all .5s; cursor: pointer;
+  }
+  .stage-dot.active { border-color:var(--gold); color:var(--gold); box-shadow:0 0 12px rgba(201,168,76,.5); background:rgba(201,168,76,.1); }
+  .stage-dot.done   { border-color:var(--green); color:var(--green); background:rgba(39,174,96,.1); }
+
+  .score-box {
+    font-family:'Share Tech Mono',monospace; font-size:12px;
+    color:var(--gold); background:rgba(201,168,76,.1);
+    border:1px solid rgba(201,168,76,.3); padding:5px 14px; letter-spacing:2px;
+  }
+
+  /* ── LAYOUT ── */
+  .story-panel { max-width:1200px; margin:0 auto; padding:40px 40px 0; }
+
+  .chapter-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(201,168,76,.1); border: 1px solid var(--gold);
+    padding: 5px 14px; font-family:'Orbitron',monospace;
+    font-size: 10px; letter-spacing: 3px; color: var(--gold); margin-bottom: 18px;
+  }
+
+  /* ── Relic Banner ── */
+  .relic-banner {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 20px; margin-bottom: 20px;
+    border: 1px solid; border-radius: 2px;
+    position: relative; overflow: hidden;
+  }
+  .relic-banner.eye-relic   { border-color: rgba(0,229,204,.4); background: rgba(0,229,204,.05); }
+  .relic-banner.cloak-relic { border-color: rgba(139,47,201,.4); background: rgba(139,47,201,.05); }
+  .relic-banner.sling-relic { border-color: rgba(255,149,0,.4);  background: rgba(255,149,0,.05); }
+  .relic-banner::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+  }
+  .relic-banner.eye-relic::before   { background: var(--eye-color); }
+  .relic-banner.cloak-relic::before { background: var(--cloak-color); }
+  .relic-banner.sling-relic::before { background: var(--sling-color); }
+  .relic-banner-icon { font-size: 36px; animation: floatChar 2.5s ease-in-out infinite; }
+  .relic-banner-content { flex: 1; }
+  .relic-banner-name {
+    font-family:'Orbitron',monospace; font-size: 12px; letter-spacing: 3px; margin-bottom: 4px;
+  }
+  .eye-relic   .relic-banner-name { color: var(--eye-color); }
+  .cloak-relic .relic-banner-name { color: var(--cloak-color); }
+  .sling-relic .relic-banner-name { color: var(--sling-color); }
+  .relic-banner-desc { font-size: 13px; line-height: 1.7; color: rgba(232,224,208,.8); }
+
+  /* ── Story Box ── */
+  .story-box {
+    display: grid; grid-template-columns: auto 1fr; gap: 20px;
+    align-items: start;
+    background: rgba(16,16,30,.8);
+    border: 1px solid rgba(201,168,76,.2); border-left: 4px solid var(--gold);
+    padding: 22px; margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  .story-box::before {
+    content:''; position:absolute; top:0; right:0; width:200px; height:100%;
+    background: linear-gradient(270deg, rgba(201,168,76,.05), transparent);
+  }
+  .story-char { font-size: 60px; animation: floatChar 2s ease-in-out infinite; }
+  @keyframes floatChar { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+  .story-text { font-size: 14px; line-height: 2; }
+  .story-text strong { color: var(--gold); }
+  .story-text em { color: var(--accent); font-style: normal; }
+  .dialog-tail {
+    display: block; background: rgba(201,168,76,.07);
+    border-left: 3px solid var(--gold); padding: 12px 16px;
+    margin-top: 12px; font-size: 13px; line-height: 1.9; font-style: italic;
+  }
+
+  /* ── Section Titles ── */
+  .section-title {
+    font-family:'Orbitron',monospace; font-size: 20px; color: var(--gold);
+    letter-spacing: 3px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--gold),transparent); }
+  .section-sub { font-size:12px; color:var(--accent); letter-spacing:4px; margin-bottom:28px; font-family:'Share Tech Mono',monospace; }
+
+  /* ── Knowledge Cards ── */
+  .knowledge-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; margin-bottom:36px; }
+  .k-card {
+    background: rgba(16,16,30,.9); border: 1px solid rgba(201,168,76,.2);
+    padding: 22px; position:relative; overflow:hidden;
+    transition: all .3s; cursor: pointer;
+  }
+  .k-card::before {
+    content:''; position:absolute; top:0; left:0; width:100%; height:3px;
+    background: linear-gradient(90deg,var(--gold),var(--accent));
+    transform: scaleX(0); transform-origin:left; transition:transform .3s;
+  }
+  .k-card:hover::before { transform:scaleX(1); }
+  .k-card:hover { border-color:rgba(201,168,76,.5); transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,.5),0 0 30px rgba(201,168,76,.1); }
+  .k-card-icon { font-size:34px; margin-bottom:10px; }
+  .k-card-title { font-size:14px; color:var(--gold); margin-bottom:8px; font-weight:700; }
+  .k-card-body { font-size:12px; line-height:1.8; color:rgba(232,224,208,.8); }
+  .k-card-formula { margin-top:10px; padding:8px; background:rgba(0,0,0,.4); border:1px solid rgba(201,168,76,.2); font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--accent); text-align:center; }
+
+  /* ── Python Tip Box ── */
+  .py-tip {
+    background: var(--py-bg);
+    border: 1px solid rgba(166,226,46,.25);
+    border-left: 4px solid var(--py-green);
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .py-tip::before {
+    content: '🐍 Python 小提示';
+    display: block;
+    background: rgba(166,226,46,.12);
+    padding: 8px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--py-green);
+    letter-spacing: 3px; border-bottom: 1px solid rgba(166,226,46,.15);
+  }
+  .py-code {
+    padding: 16px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12.5px; line-height: 1.9;
+    overflow-x: auto; white-space: pre;
+    color: #F8F8F2;
+  }
+  .py-tip-note {
+    padding: 10px 20px 14px;
+    font-size: 12px; color: rgba(232,224,208,.6); line-height:1.7;
+    border-top: 1px solid rgba(166,226,46,.1);
+  }
+  /* syntax colours */
+  .py-kw  { color: var(--py-pink); }
+  .py-fn  { color: var(--py-blue); }
+  .py-str { color: var(--py-string); }
+  .py-num { color: var(--py-orange); }
+  .py-cm  { color: var(--py-comment); }
+  .py-cls { color: var(--py-green); }
+  .py-var { color: #F8F8F2; }
+  .py-op  { color: #F92672; }
+
+  /* ── Demo Zone ── */
+  .demo-zone {
+    background: rgba(10,10,20,.95); border: 1px solid rgba(201,168,76,.3);
+    padding: 28px; margin-bottom: 36px; position: relative;
+  }
+  .demo-zone::before {
+    content:'⚡ 互動實驗室'; position:absolute; top:-12px; left:20px;
+    background:var(--dark); color:var(--gold); padding:2px 12px;
+    font-size:11px; font-family:'Orbitron',monospace; letter-spacing:2px;
+    border:1px solid rgba(201,168,76,.3);
+  }
+
+  .slider-group { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:18px; margin-bottom:20px; }
+  .slider-item label { display:block; font-size:11px; color:var(--accent); margin-bottom:6px; font-family:'Share Tech Mono',monospace; letter-spacing:1px; }
+  .slider-item input[type="range"] { width:100%; accent-color:var(--gold); cursor:pointer; }
+  .slider-val { display:inline-block; background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.3); padding:2px 10px; font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--gold); margin-top:4px; min-width:56px; text-align:center; }
+
+  select.styled {
+    width:100%; padding:8px; background:rgba(0,0,0,.5);
+    border:1px solid rgba(201,168,76,.3); color:var(--gold);
+    font-family:'Share Tech Mono',monospace; font-size:12px; cursor:pointer;
+  }
+
+  .chart-wrap { position:relative; background:rgba(0,0,0,.4); border:1px solid rgba(201,168,76,.1); padding:16px; height:290px; }
+
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+  .btn-action {
+    padding:9px 22px; background:transparent; border:1px solid var(--gold);
+    color:var(--gold); font-family:'Share Tech Mono',monospace; font-size:12px;
+    letter-spacing:2px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+  }
+  .btn-action::before { content:''; position:absolute; inset:0; background:var(--gold); transform:translateY(100%); transition:transform .2s; z-index:-1; }
+  .btn-action:hover::before { transform:translateY(0); }
+  .btn-action:hover { color:var(--dark); }
+  .btn-action.accent { border-color:var(--accent); color:var(--accent); }
+  .btn-action.accent::before { background:var(--accent); }
+  .btn-action.accent:hover { color:var(--dark); }
+  .btn-action.danger { border-color:var(--red); color:var(--red); }
+  .btn-action.danger::before { background:var(--red); }
+  .btn-action.danger:hover { color:white; }
+
+  .result-panel {
+    background:rgba(0,0,0,.5); border:1px solid rgba(201,168,76,.2); padding:14px;
+    margin-top:18px; font-family:'Share Tech Mono',monospace; font-size:12px;
+    line-height:2; min-height:72px; color:var(--text);
+  }
+  .result-panel .highlight { color:var(--gold); }
+  .result-panel .ok  { color:var(--green); }
+  .result-panel .warn{ color:#E67E22; }
+  .result-panel .err { color:var(--red); }
+
+  /* ── Chapter Divider ── */
+  .chapter-divider { text-align:center; padding:54px 40px; position:relative; overflow:hidden; }
+  .chapter-divider::before,.chapter-divider::after { content:''; position:absolute; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+  .chapter-divider::before { top:36px; }
+  .chapter-divider::after  { bottom:36px; }
+  .chapter-num { font-family:'Orbitron',monospace; font-size:72px; color:rgba(201,168,76,.07); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); letter-spacing:10px; white-space:nowrap; }
+  .chapter-title { font-family:'Orbitron',monospace; font-size:clamp(15px,2.2vw,24px); color:var(--gold); letter-spacing:4px; position:relative; z-index:1; }
+  .chapter-emoji { font-size:44px; display:block; margin-bottom:10px; animation:pulseEmoji 2s ease-in-out infinite; }
+  @keyframes pulseEmoji { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.12); } }
+
+  /* ── Data Table ── */
+  .data-table { width:100%; border-collapse:collapse; font-family:'Share Tech Mono',monospace; font-size:12px; margin-bottom:18px; }
+  .data-table th { background:rgba(201,168,76,.15); color:var(--gold); padding:9px 14px; text-align:left; border:1px solid rgba(201,168,76,.2); }
+  .data-table td { padding:7px 14px; border:1px solid rgba(201,168,76,.1); color:var(--text); }
+  .data-table tr:nth-child(even) td { background:rgba(255,255,255,.02); }
+  .data-table tr:hover td { background:rgba(201,168,76,.05); }
+  .td-scaled { color:var(--accent)!important; }
+
+  /* ── Quiz ── */
+  .quiz-section { background:rgba(16,16,30,.95); border:1px solid rgba(201,168,76,.3); padding:28px; margin-bottom:36px; position:relative; }
+  .quiz-section::before { content:'📋 考題訓練'; position:absolute; top:-12px; left:20px; background:var(--dark2); color:var(--accent); padding:2px 12px; font-size:11px; font-family:'Orbitron',monospace; letter-spacing:2px; border:1px solid rgba(76,168,201,.3); }
+  .quiz-item { margin-bottom:26px; padding-bottom:26px; border-bottom:1px solid rgba(201,168,76,.1); }
+  .quiz-item:last-child { border-bottom:none; margin-bottom:0; }
+  .quiz-q { font-size:14px; line-height:1.8; margin-bottom:14px; color:var(--text); }
+  .quiz-q .q-num { display:inline-block; background:var(--gold); color:var(--dark); padding:2px 8px; font-family:'Orbitron',monospace; font-size:11px; margin-right:8px; }
+  .quiz-options { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  .quiz-opt { padding:11px 14px; background:rgba(255,255,255,.03); border:1px solid rgba(201,168,76,.15); cursor:pointer; font-size:13px; line-height:1.6; transition:all .2s; color:var(--text); text-align:left; display:flex; align-items:center; gap:9px; }
+  .quiz-opt:hover:not(.answered) { border-color:var(--gold); background:rgba(201,168,76,.05); }
+  .quiz-opt.correct { border-color:var(--green); background:rgba(39,174,96,.1); color:var(--green); }
+  .quiz-opt.wrong   { border-color:var(--red);   background:rgba(192,57,43,.1);  color:var(--red); }
+  .opt-label { min-width:22px; height:22px; border-radius:50%; border:1px solid currentColor; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:10px; }
+  .quiz-explain { margin-top:10px; padding:11px 14px; background:rgba(201,168,76,.05); border-left:3px solid var(--gold); font-size:12px; line-height:1.8; display:none; color:rgba(232,224,208,.9); }
+  .quiz-explain.show { display:block; }
+  .quiz-explain strong { color:var(--gold); }
+
+  /* ── McKinsey Stats ── */
+  .mck-info { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+  .mck-stat { background:rgba(27,58,107,.3); border:1px solid rgba(27,58,107,.6); border-top:3px solid var(--mck-blue); padding:18px; text-align:center; }
+  .mck-stat-val { font-family:'Orbitron',monospace; font-size:24px; color:var(--gold); display:block; margin-bottom:4px; }
+  .mck-stat-label { font-size:11px; color:var(--accent); letter-spacing:2px; }
+
+  /* ── Achievement ── */
+  .achievement { display:none; text-align:center; padding:36px; background:radial-gradient(ellipse,rgba(201,168,76,.12) 0%,transparent 70%); border:1px solid var(--gold); margin-bottom:36px; animation:achieveIn .6s ease; }
+  .achievement.show { display:block; }
+  @keyframes achieveIn { from{ transform:scale(.8); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .achieve-icon { font-size:68px; display:block; margin-bottom:10px; }
+  .achieve-title { font-family:'Orbitron',monospace; font-size:18px; color:var(--gold); letter-spacing:4px; margin-bottom:6px; }
+  .achieve-desc { font-size:13px; color:rgba(232,224,208,.8); }
+
+  /* ── Tooltip ── */
+  .tooltip-trigger { border-bottom:1px dashed var(--gold); cursor:help; position:relative; }
+  .tooltip-trigger:hover::after { content:attr(data-tip); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:rgba(10,10,20,.95); border:1px solid var(--gold); color:var(--text); padding:7px 11px; font-size:11px; white-space:nowrap; z-index:100; pointer-events:none; }
+
+  /* ── Footer ── */
+  .site-footer { text-align:center; padding:36px; border-top:1px solid rgba(201,168,76,.2); font-size:11px; color:rgba(232,224,208,.35); letter-spacing:2px; font-family:'Share Tech Mono',monospace; }
+
+  /* ── Responsive ── */
+  @media(max-width:768px){
+    .site-header{ padding:10px 14px; }
+    .story-panel{ padding:18px 14px 0; }
+    .demo-zone{ padding:20px 14px; }
+    .quiz-options{ grid-template-columns:1fr; }
+    .story-box{ grid-template-columns:1fr; }
+    .story-char{ font-size:38px; }
+    .relic-intro-row{ gap:14px; }
+    .logo-sub{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-dot"></div>
+<canvas id="bg-canvas"></canvas>
+<div class="mck-grid"></div>
+<div id="particles"></div>
+
+<!-- ══════════════════════════════════════
+     INTRO
+══════════════════════════════════════ -->
+<div id="intro-screen">
+  <div class="portal-ring"></div>
+  <div class="portal-ring"></div>
+  <div class="portal-ring"></div>
+  <div class="portal-ring"></div>
+
+  <div class="strange-hero" id="hero-emoji" title="點我開始！">🧙</div>
+
+  <div class="relic-intro-row">
+    <div class="relic-intro-item">
+      <span class="relic-intro-icon">🔮</span>
+      <span>阿迦莫多之眼</span>
+    </div>
+    <div class="relic-intro-item">
+      <span class="relic-intro-icon">🦸</span>
+      <span>魔浮斗篷</span>
+    </div>
+    <div class="relic-intro-item">
+      <span class="relic-intro-icon">💍</span>
+      <span>懸　　戒</span>
+    </div>
+  </div>
+
+  <div class="intro-title">奇異博士的資料異常修復任務</div>
+  <div class="intro-subtitle">DOCTOR STRANGE DATA QUEST · iPAS AI應用規劃師·科目二</div>
+
+  <div class="intro-desc">
+    多重宇宙的資料流正在崩潰！<br>
+    奇異博士必須依靠<strong style="color:#00E5CC">阿迦莫多之眼</strong>、<strong style="color:#8B2FC9">魔浮斗篷</strong>、<strong style="color:#FF9500">懸戒</strong>的力量，<br>
+    完成<strong style="color:var(--gold)">三大關卡</strong>，拯救神盾局的 AI 模型！
+  </div>
+
+  <div style="margin-top:14px;font-size:12px;color:var(--accent);font-family:'Share Tech Mono',monospace;letter-spacing:2px;">
+    🏆 三關卡 ｜ 🐍 Python提示 ｜ 📝 考題演練 ｜ 🎯 即時評分
+  </div>
+
+  <button class="btn-start" id="btn-enter">⚡ 召喚魔法陣 · 開始任務</button>
+  <div style="margin-top:16px;font-size:11px;color:rgba(232,224,208,.35);letter-spacing:2px;">McKINSEY × MARVEL × DATA SCIENCE · iPAS科目二</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div id="main-app">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-logo">
+      <div class="logo-icon">🧙</div>
+      <div>
+        <div class="logo-text">STRANGE DATA QUEST</div>
+        <div class="logo-sub">iPAS 科目二 · 資料前處理三部曲</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="relic-status" title="收集三件神器">
+        <div class="relic-badge eye"   id="badge-eye"   title="阿迦莫多之眼">🔮</div>
+        <div class="relic-badge cloak" id="badge-cloak" title="魔浮斗篷">🦸</div>
+        <div class="relic-badge sling" id="badge-sling" title="懸戒">💍</div>
+      </div>
+      <div class="stage-dots">
+        <div class="stage-dot active" id="dot-1" onclick="scrollToStage(1)" title="關卡一">1</div>
+        <div class="stage-dot"        id="dot-2" onclick="scrollToStage(2)" title="關卡二">2</div>
+        <div class="stage-dot"        id="dot-3" onclick="scrollToStage(3)" title="關卡三">3</div>
+      </div>
+      <div class="score-box">🏆 <span id="score-display">0</span> 分</div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════
+       STAGE 1 · 阿迦莫多之眼 × 資料縮放
+  ════════════════════════════════════ -->
+  <div id="stage-1" class="story-panel">
+
+    <div class="chapter-divider">
+      <div class="chapter-num">STAGE I</div>
+      <span class="chapter-emoji">🔮</span>
+      <div class="chapter-title">關卡一：阿迦莫多之眼 × 資料縮放的煉金術</div>
+    </div>
+
+    <!-- Relic Banner -->
+    <div class="relic-banner eye-relic">
+      <div class="relic-banner-icon">🔮</div>
+      <div class="relic-banner-content">
+        <div class="relic-banner-name">AGAMOTTO'S EYE · 阿迦莫多之眼</div>
+        <div class="relic-banner-desc">
+          阿迦莫多之眼擁有<strong style="color:var(--eye-color)">透視萬物尺度</strong>的神力，能看穿資料間的比例失衡。<br>
+          就如同它能操控時間的流速，<strong>Min-Max、Z-Score、Robust Scaler</strong> 能將不同量綱的特徵，統一到同一個「時間軸」上，讓 AI 模型公平地看待每一個維度。
+        </div>
+      </div>
+    </div>
+
+    <!-- Story -->
+    <div class="chapter-badge">📖 故事情境</div>
+    <div class="story-box">
+      <div class="story-char">🧙</div>
+      <div class="story-text">
+        <strong>【神盾局緊急通報 — 特徵空間扭曲！】</strong><br>
+        奇異博士戴上阿迦莫多之眼，凝視資料流…寶石內的綠光瞬間爆閃！
+        <div class="dialog-tail">
+          「Wong！眼睛看到了！神盾局 AI 模型的<em>特徵空間嚴重扭曲</em>！<br>
+          英雄年齡 0–100、力量指數 1,000–9,999、訓練時數 10–5,000…<br>
+          梯度下降被<strong>不均等的尺度</strong>拉著跑，根本找不到最優解！<br>
+          我要用阿迦莫多之眼的<em>尺度透視術</em>，還原特徵的真實比例！」
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge -->
+    <div class="section-title">⚡ 核心知識</div>
+    <div class="section-sub">DATA SCALING FUNDAMENTALS · 資料縮放基礎</div>
+
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">📏</div>
+        <div class="k-card-title">Min-Max 正規化（Normalization）</div>
+        <div class="k-card-body">線性縮放到 [0, 1]，保留分布形狀。<br>對離群值高度敏感。<br>✅ 適用：神經網路、KNN、影像像素。</div>
+        <div class="k-card-formula">x' = (x − min) ÷ (max − min)</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📊</div>
+        <div class="k-card-title">Z-Score 標準化（Standardization）</div>
+        <div class="k-card-body">均值=0、標準差=1，對離群值較不敏感。<br>✅ 適用：SVM、PCA、線性回歸。</div>
+        <div class="k-card-formula">z = (x − μ) ÷ σ</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🛡️</div>
+        <div class="k-card-title">Robust Scaler</div>
+        <div class="k-card-body">中位數 + IQR，對極端值強健。<br>✅ 適用：含大量離群值的資料集。</div>
+        <div class="k-card-formula">x' = (x − Q2) ÷ IQR</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚠️</div>
+        <div class="k-card-title">何時必須縮放？</div>
+        <div class="k-card-body">
+          ✅ KNN、SVM、PCA、神經網路<br>
+          ✅ 梯度下降優化算法<br>
+          ❌ 決策樹、隨機森林（基於分裂）<br>
+          ❌ 樸素貝葉斯（獨立假設）
+        </div>
+      </div>
+    </div>
+
+    <!-- Python Tip 1 -->
+    <div class="py-tip">
+<div class="py-code"><span class="py-cm"># ── 🔮 阿迦莫多之眼：Scikit-learn 資料縮放 ──────────────────</span>
+<span class="py-kw">from</span> <span class="py-cls">sklearn.preprocessing</span> <span class="py-kw">import</span> <span class="py-cls">MinMaxScaler</span>, <span class="py-cls">StandardScaler</span>, <span class="py-cls">RobustScaler</span>
+<span class="py-kw">import</span> <span class="py-cls">numpy</span> <span class="py-kw">as</span> np
+
+<span class="py-var">X</span> = np.<span class="py-fn">array</span>([[<span class="py-num">38</span>, <span class="py-num">1500</span>, <span class="py-num">4000</span>],   <span class="py-cm"># [年齡, 力量指數, 訓練時數]</span>
+              [<span class="py-num">17</span>, <span class="py-num">7500</span>, <span class="py-num">800</span>],
+              [<span class="py-num">45</span>, <span class="py-num">9800</span>, <span class="py-num">200</span>]])
+
+<span class="py-cm"># ① Min-Max 正規化 → 值域 [0, 1]</span>
+<span class="py-var">mm_scaler</span> = <span class="py-cls">MinMaxScaler</span>()
+<span class="py-var">X_mm</span> = mm_scaler.<span class="py-fn">fit_transform</span>(<span class="py-var">X</span>)
+
+<span class="py-cm"># ② Z-Score 標準化 → μ=0, σ=1</span>
+<span class="py-var">std_scaler</span> = <span class="py-cls">StandardScaler</span>()
+<span class="py-var">X_std</span> = std_scaler.<span class="py-fn">fit_transform</span>(<span class="py-var">X</span>)
+
+<span class="py-cm"># ③ Robust Scaler → 使用 Q2 + IQR，抗離群值</span>
+<span class="py-var">rob_scaler</span> = <span class="py-cls">RobustScaler</span>()
+<span class="py-var">X_rob</span> = rob_scaler.<span class="py-fn">fit_transform</span>(<span class="py-var">X</span>)
+
+<span class="py-cm"># ⚠️ 重要：fit 只在訓練集，transform 同時用於訓練集與測試集！</span>
+<span class="py-cm"># scaler.fit(X_train) → scaler.transform(X_test)  ← 避免資料洩漏</span></div>
+      <div class="py-tip-note">
+        💡 <strong style="color:var(--py-green)">iPAS 考試重點：</strong>
+        縮放器必須只用 <code style="color:var(--py-blue)">fit_transform()</code> 於<strong>訓練集</strong>，測試集只能用 <code style="color:var(--py-blue)">transform()</code>，否則會造成<strong>資料洩漏（Data Leakage）</strong>，讓測試集資訊污染了模型訓練！
+      </div>
+    </div>
+
+    <!-- Demo Zone -->
+    <div class="demo-zone">
+      <div class="section-title" style="margin-bottom:18px;">🧪 阿迦莫多之眼·縮放實驗室</div>
+      <p style="font-size:12px;color:rgba(232,224,208,.7);margin-bottom:18px;line-height:1.8;">
+        神盾局英雄特訓資料特徵尺度差距懸殊！施展縮放魔法，讓模型公平學習。
+      </p>
+
+      <div style="overflow-x:auto;margin-bottom:18px;">
+        <table class="data-table" id="raw-table">
+          <thead><tr>
+            <th>英雄</th><th>年齡(原)</th><th>力量(原)</th><th>時數(原)</th>
+            <th id="scaled-col-head" style="color:var(--eye-color);">→ 縮放後</th>
+          </tr></thead>
+          <tbody id="data-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-item">
+          <label>縮放方法</label>
+          <select id="scale-method" class="styled">
+            <option value="minmax">📏 Min-Max 正規化</option>
+            <option value="zscore">📊 Z-Score 標準化</option>
+            <option value="robust">🛡️ Robust Scaler</option>
+          </select>
+        </div>
+        <div class="slider-item">
+          <label>選擇特徵欄位</label>
+          <select id="scale-feature" class="styled">
+            <option value="age">年齡 (0–100)</option>
+            <option value="power">力量指數 (1000–9999)</option>
+            <option value="hours">訓練時數 (10–5000)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-action" onclick="applyScaling()">🔮 施展縮放魔法</button>
+        <button class="btn-action accent" onclick="showDistChart()">📊 查看分布</button>
+        <button class="btn-action" onclick="compareAll()">🔄 三法比較</button>
+      </div>
+
+      <div class="chart-wrap" style="margin-top:18px;"><canvas id="scale-chart"></canvas></div>
+      <div class="result-panel" id="scale-result"><span style="color:rgba(232,224,208,.4);">▶ 請選擇縮放方法並點擊施展魔法…</span></div>
+    </div>
+
+    <!-- McKinsey Stats -->
+    <div class="mck-info">
+      <div class="mck-stat"><span class="mck-stat-val">3</span><span class="mck-stat-label">主要縮放方法</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">[0,1]</span><span class="mck-stat-label">Min-Max 輸出範圍</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">μ=0,σ=1</span><span class="mck-stat-label">Z-Score 目標分布</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">IQR</span><span class="mck-stat-label">Robust 使用指標</span></div>
+    </div>
+
+    <!-- Quiz 1 -->
+    <div class="quiz-section">
+      <div class="section-title" style="margin-bottom:18px;color:var(--accent);">📝 關卡一考題 · 資料縮放</div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q1</span>在建立 KNN（K最近鄰）分類模型前，為何需要對特徵進行資料縮放？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q1-a')" data-qid="q1"><span class="opt-label">A</span>降低模型的過擬合問題</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q1-b')" data-qid="q1"><span class="opt-label">B</span>避免大尺度特徵主導距離計算</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q1-c')" data-qid="q1"><span class="opt-label">C</span>加快資料讀取速度</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q1-d')" data-qid="q1"><span class="opt-label">D</span>增加訓練樣本數量</button>
+        </div>
+        <div class="quiz-explain" id="q1-b"><strong>✅ 正確！</strong> KNN 以歐氏距離衡量相似度。薪資（0–500,000）與年齡（0–100）並存時，薪資尺度遠大，距離幾乎完全由薪資決定，年齡毫無貢獻。縮放讓每個特徵平等參與計算。</div>
+        <div class="quiz-explain" id="q1-a"><strong>❌ 錯誤。</strong> 過擬合靠正則化、Dropout 解決；縮放解決的是特徵尺度不均問題。</div>
+        <div class="quiz-explain" id="q1-c"><strong>❌ 錯誤。</strong> 縮放不影響資料讀取速度。</div>
+        <div class="quiz-explain" id="q1-d"><strong>❌ 錯誤。</strong> 增加樣本是資料增強（Data Augmentation）的功能。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q2</span>薪資欄位含極端值（CEO薪資遠高於一般員工），哪種縮放方法最適合？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q2-a')" data-qid="q2"><span class="opt-label">A</span>Min-Max 正規化</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q2-b')" data-qid="q2"><span class="opt-label">B</span>Z-Score 標準化</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q2-c')" data-qid="q2"><span class="opt-label">C</span>Robust Scaler</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q2-d')" data-qid="q2"><span class="opt-label">D</span>不需要縮放</button>
+        </div>
+        <div class="quiz-explain" id="q2-c"><strong>✅ 正確！</strong> Robust Scaler 使用中位數（Q2）和 IQR（Q3-Q1），不受極端值影響。CEO 超高薪資不會扭曲其他員工的縮放結果。</div>
+        <div class="quiz-explain" id="q2-a"><strong>❌ 錯誤。</strong> Min-Max 中 CEO 薪資成為 max，其他員工縮放值都壓縮趨近 0，喪失區分意義。</div>
+        <div class="quiz-explain" id="q2-b"><strong>❌ 錯誤。</strong> Z-Score 雖比 Min-Max 好，但極端值仍會拉高均值、膨脹標準差，不如 Robust Scaler 穩健。</div>
+        <div class="quiz-explain" id="q2-d"><strong>❌ 錯誤。</strong> KNN、SVM、神經網路都需要縮放。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q3</span>【iPAS樣題】以下關於 Z-Score 標準化的敘述，哪項正確？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q3-a')" data-qid="q3"><span class="opt-label">A</span>標準化後資料必定呈常態分布</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q3-b')" data-qid="q3"><span class="opt-label">B</span>標準化後所有值都在 [0, 1] 之間</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q3-c')" data-qid="q3"><span class="opt-label">C</span>標準化後均值為0、標準差為1，但分布形狀不變</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q3-d')" data-qid="q3"><span class="opt-label">D</span>決策樹使用前必須進行Z-Score標準化</button>
+        </div>
+        <div class="quiz-explain" id="q3-c"><strong>✅ 正確！</strong> Z-Score 是線性變換，只改變均值→0、標準差→1，<strong>不改變分布形狀</strong>。原本右偏仍右偏，且值域可能超出 [0,1]（如極端值 z>3）。</div>
+        <div class="quiz-explain" id="q3-a"><strong>❌ 錯誤。</strong> 線性變換不改變分布形狀，左偏/雙峰資料標準化後仍保持原形。</div>
+        <div class="quiz-explain" id="q3-b"><strong>❌ 錯誤。</strong> [0,1] 是 Min-Max 的特性。Z-Score 值域是(-∞,+∞)，多數值在[-3,3]間。</div>
+        <div class="quiz-explain" id="q3-d"><strong>❌ 錯誤。</strong> 決策樹基於分裂點，對尺度不敏感，不需縮放。</div>
+      </div>
+    </div>
+
+    <!-- Achievement 1 -->
+    <div class="achievement" id="achieve-1">
+      <span class="achieve-icon">🔮</span>
+      <div class="achieve-title">阿迦莫多之眼 · 獲得！</div>
+      <div class="achieve-desc">你看穿了資料尺度的迷霧！寶石緩緩鑲入奇異博士的項鍊，閃耀著青綠光芒…</div>
+    </div>
+  </div><!-- end stage-1 -->
+
+
+  <!-- ════════════════════════════════════
+       STAGE 2 · 魔浮斗篷 × 異常偵測
+  ════════════════════════════════════ -->
+  <div id="stage-2" class="story-panel">
+
+    <div class="chapter-divider">
+      <div class="chapter-num">STAGE II</div>
+      <span class="chapter-emoji">🦸</span>
+      <div class="chapter-title">關卡二：魔浮斗篷 × 異常偵測·驅逐數據惡靈</div>
+    </div>
+
+    <!-- Relic Banner -->
+    <div class="relic-banner cloak-relic">
+      <div class="relic-banner-icon">🦸</div>
+      <div class="relic-banner-content">
+        <div class="relic-banner-name">CLOAK OF LEVITATION · 魔浮斗篷</div>
+        <div class="relic-banner-desc">
+          魔浮斗篷擁有<strong style="color:var(--cloak-color)">自主意識</strong>，能主動感知威脅並做出反應——就如同<strong>IQR 四分位距法</strong>和 <strong>Z-Score 方法</strong>，能自動偵測資料中的「威脅」（離群值），並向資料科學家示警！斗篷飄起的那一刻，就是模型得救的時刻。
+        </div>
+      </div>
+    </div>
+
+    <!-- Story -->
+    <div class="chapter-badge">📖 故事情境</div>
+    <div class="story-box">
+      <div class="story-char">🧙</div>
+      <div class="story-text">
+        <strong>【Sanctum 資料庫警報！魔浮斗篷狂舞！】</strong><br>
+        斗篷突然自己飄起來，猛拍奇異博士的臉——有危險！
+        <div class="dialog-tail">
+          「Dormammu 的數據惡靈入侵了！他在訓練資料中植入了<em>離群值（Outliers）</em>！<br>
+          年齡 <strong>999 歲</strong>、薪資 <strong>-50,000</strong>、成功率 <strong>-0.15</strong>…<br>
+          這些毒素正腐蝕迴歸模型，把預測推向遙遠的多重宇宙！<br>
+          魔浮斗篷的本能感知 ＋ <em>IQR 四分位法與 Z 分數</em>，一起抓出惡靈！」
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge -->
+    <div class="section-title">⚡ 核心知識</div>
+    <div class="section-sub">OUTLIER DETECTION METHODS · 異常值偵測方法</div>
+
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">📦</div>
+        <div class="k-card-title">IQR 四分位距法</div>
+        <div class="k-card-body">IQR = Q3 − Q1<br>下界 = Q1 − 1.5 × IQR<br>上界 = Q3 + 1.5 × IQR<br>超出邊界 → 判定異常</div>
+        <div class="k-card-formula">x &lt; Q1-1.5IQR 或 x &gt; Q3+1.5IQR</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔢</div>
+        <div class="k-card-title">Z-Score 方法</div>
+        <div class="k-card-body">計算標準分數，|z| &gt; 3 判定異常。<br>假設資料近似常態分布，<br>99.7% 數據落在 ±3σ 內。</div>
+        <div class="k-card-formula">|z| = |x − μ| / σ &gt; 3 → 異常</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🤖</div>
+        <div class="k-card-title">Isolation Forest</div>
+        <div class="k-card-body">無監督方法，透過隨機分割，<br>異常點更容易被孤立（路徑短）。<br>適用高維度複雜資料。</div>
+        <div class="k-card-formula">路徑越短 → 異常分數越高</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🎯</div>
+        <div class="k-card-title">處理策略</div>
+        <div class="k-card-body">
+          🗑️ <strong>刪除</strong>：確認為錯誤記錄<br>
+          📦 <strong>封頂</strong>：Winsorization（截尾）<br>
+          🔄 <strong>替換</strong>：中位數/均值填充<br>
+          🏷️ <strong>標記</strong>：作為特殊類別保留
+        </div>
+      </div>
+    </div>
+
+    <!-- Python Tip 2 -->
+    <div class="py-tip">
+<div class="py-code"><span class="py-cm"># ── 🦸 魔浮斗篷：異常值偵測與處理 ──────────────────────────</span>
+<span class="py-kw">import</span> <span class="py-cls">numpy</span> <span class="py-kw">as</span> np
+<span class="py-kw">import</span> <span class="py-cls">pandas</span> <span class="py-kw">as</span> pd
+<span class="py-kw">from</span> <span class="py-cls">scipy</span> <span class="py-kw">import</span> stats
+<span class="py-kw">from</span> <span class="py-cls">sklearn.ensemble</span> <span class="py-kw">import</span> <span class="py-cls">IsolationForest</span>
+
+<span class="py-var">scores</span> = np.<span class="py-fn">array</span>([<span class="py-num">45</span>,<span class="py-num">52</span>,<span class="py-num">48</span>,<span class="py-num">61</span>,<span class="py-num">55</span>,<span class="py-num">999</span>,<span class="py-num">43</span>,<span class="py-num">58</span>,<span class="py-num">47</span>,<span class="py-num">-200</span>,<span class="py-num">50</span>])
+
+<span class="py-cm"># ① IQR 法</span>
+<span class="py-var">Q1</span>, <span class="py-var">Q3</span> = np.<span class="py-fn">percentile</span>(<span class="py-var">scores</span>, [<span class="py-num">25</span>, <span class="py-num">75</span>])
+<span class="py-var">IQR</span>       = <span class="py-var">Q3</span> - <span class="py-var">Q1</span>
+<span class="py-var">lower</span>, <span class="py-var">upper</span> = <span class="py-var">Q1</span> - <span class="py-num">1.5</span>*<span class="py-var">IQR</span>, <span class="py-var">Q3</span> + <span class="py-num">1.5</span>*<span class="py-var">IQR</span>
+<span class="py-var">iqr_mask</span>  = (<span class="py-var">scores</span> &lt; <span class="py-var">lower</span>) | (<span class="py-var">scores</span> &gt; <span class="py-var">upper</span>)   <span class="py-cm"># True = 異常</span>
+
+<span class="py-cm"># ② Z-Score 法</span>
+<span class="py-var">z_scores</span>  = np.<span class="py-fn">abs</span>(stats.<span class="py-fn">zscore</span>(<span class="py-var">scores</span>))
+<span class="py-var">z_mask</span>    = <span class="py-var">z_scores</span> &gt; <span class="py-num">3</span>                                <span class="py-cm"># |z| > 3</span>
+
+<span class="py-cm"># ③ Isolation Forest（適合高維）</span>
+<span class="py-var">iso</span> = <span class="py-cls">IsolationForest</span>(contamination=<span class="py-num">0.1</span>, random_state=<span class="py-num">42</span>)
+<span class="py-var">labels</span> = <span class="py-var">iso</span>.<span class="py-fn">fit_predict</span>(<span class="py-var">scores</span>.reshape(<span class="py-num">-1</span>,<span class="py-num">1</span>))  <span class="py-cm"># -1=異常, 1=正常</span>
+
+<span class="py-cm"># ④ Winsorization（截尾處理）</span>
+<span class="py-var">cleaned</span> = np.<span class="py-fn">clip</span>(<span class="py-var">scores</span>, <span class="py-var">lower</span>, <span class="py-var">upper</span>)          <span class="py-cm"># 超界值截斷</span></div>
+      <div class="py-tip-note">
+        💡 <strong style="color:var(--py-green)">iPAS 考試重點：</strong>
+        IQR 法不假設分布、適合偏態資料；Z-Score 法假設常態分布；Isolation Forest 適合高維度無監督偵測。
+        <code style="color:var(--py-blue)">contamination</code> 參數為預估異常比例（0到0.5）。
+      </div>
+    </div>
+
+    <!-- Demo Zone -->
+    <div class="demo-zone">
+      <div class="section-title" style="margin-bottom:18px;">🔍 魔浮斗篷·異常偵測雷達</div>
+      <p style="font-size:12px;color:rgba(232,224,208,.7);margin-bottom:16px;line-height:1.8;">
+        Dormammu 植入了幾個惡靈數值。選擇偵測方法找出它們，再用處理策略消滅！
+      </p>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px;color:var(--accent);font-family:'Share Tech Mono',monospace;letter-spacing:1px;display:block;margin-bottom:6px;">📝 自訂測試數值（逗號分隔）</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="custom-data" value="45, 52, 48, 61, 55, 999, 43, 58, 47, -200, 50, 62, 44, 57, 300" style="flex:1;padding:9px;background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.3);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;">
+          <button class="btn-action" onclick="parseCustomData()">載入</button>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-item">
+          <label>偵測方法</label>
+          <select id="detect-method" class="styled">
+            <option value="iqr">📦 IQR 四分位距法</option>
+            <option value="zscore">🔢 Z-Score (|z|>2)</option>
+            <option value="zscore3">🔢 Z-Score (|z|>3)</option>
+          </select>
+        </div>
+        <div class="slider-item">
+          <label>異常處理方式</label>
+          <select id="handle-method" class="styled">
+            <option value="mark">🏷️ 標記異常值</option>
+            <option value="remove">🗑️ 刪除異常值</option>
+            <option value="cap">📦 封頂（Winsorize）</option>
+            <option value="median">🔄 替換為中位數</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-action" onclick="detectOutliers()">🦸 啟動斗篷感知</button>
+        <button class="btn-action accent" onclick="handleOutliers()">⚡ 執行處理策略</button>
+        <button class="btn-action" onclick="resetOutlierData()">🔄 重置資料</button>
+      </div>
+
+      <div class="chart-wrap" style="margin-top:18px;height:310px;"><canvas id="outlier-chart"></canvas></div>
+      <div class="result-panel" id="outlier-result"><span style="color:rgba(232,224,208,.4);">▶ 請點擊「啟動斗篷感知」開始分析…</span></div>
+    </div>
+
+    <!-- McKinsey Stats -->
+    <div class="mck-info">
+      <div class="mck-stat"><span class="mck-stat-val">Q1-Q3</span><span class="mck-stat-label">IQR 使用四分位</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">±3σ</span><span class="mck-stat-label">Z-Score 常見閾值</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">99.7%</span><span class="mck-stat-label">常態分布±3σ覆蓋</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">1.5×</span><span class="mck-stat-label">IQR 係數倍數</span></div>
+    </div>
+
+    <!-- Quiz 2 -->
+    <div class="quiz-section">
+      <div class="section-title" style="margin-bottom:18px;color:var(--accent);">📝 關卡二考題 · 異常偵測</div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q4</span>某資料集：Q1=25, Q3=75。根據 IQR 法，以下哪個數值被判定為異常值？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q4-a')" data-qid="q4"><span class="opt-label">A</span>20</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q4-b')" data-qid="q4"><span class="opt-label">B</span>85</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q4-c')" data-qid="q4"><span class="opt-label">C</span>-55</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q4-d')" data-qid="q4"><span class="opt-label">D</span>100</button>
+        </div>
+        <div class="quiz-explain" id="q4-c"><strong>✅ 正確！</strong> IQR=75-25=50，下界=25-75=<strong>-50</strong>，上界=75+75=150。-55 &lt; -50 → 超出下界！判定為異常值。20、85、100 均在 [-50, 150] 範圍內，正常。</div>
+        <div class="quiz-explain" id="q4-a"><strong>❌ 錯誤。</strong> 下界=-50，20 > -50，正常。-55 才是超出下界的異常值。</div>
+        <div class="quiz-explain" id="q4-b"><strong>❌ 錯誤。</strong> 上界=150，85 &lt; 150，正常。</div>
+        <div class="quiz-explain" id="q4-d"><strong>❌ 錯誤。</strong> 上界=150，100 &lt; 150，正常。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q5</span>【iPAS考古題】「Winsorization（截尾法）」的做法是？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q5-a')" data-qid="q5"><span class="opt-label">A</span>直接刪除所有異常值記錄</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q5-b')" data-qid="q5"><span class="opt-label">B</span>將異常值替換為上下界的臨界值</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q5-c')" data-qid="q5"><span class="opt-label">C</span>用均值填充所有缺失值</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q5-d')" data-qid="q5"><span class="opt-label">D</span>對資料進行對數轉換</button>
+        </div>
+        <div class="quiz-explain" id="q5-b"><strong>✅ 正確！</strong> Winsorization 保留所有記錄筆數，但將超出上下界的異常值「截斷」到邊界值。如上界=150，若某值=999，則替換為150。保留樣本量同時消除極端影響。</div>
+        <div class="quiz-explain" id="q5-a"><strong>❌ 錯誤。</strong> 直接刪除會減少樣本量。Winsorization 保留記錄但截斷值。</div>
+        <div class="quiz-explain" id="q5-c"><strong>❌ 錯誤。</strong> 均值填充是處理缺失值（Missing Values）的方法。</div>
+        <div class="quiz-explain" id="q5-d"><strong>❌ 錯誤。</strong> 對數轉換是特徵工程，不是 Winsorization。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q6</span>特工「任務成功率」為 -0.15（負數）。這最可能是？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q6-a')" data-qid="q6"><span class="opt-label">A</span>正常資料，表示失敗多於成功</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q6-b')" data-qid="q6"><span class="opt-label">B</span>需更多資料才能判斷</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q6-c')" data-qid="q6"><span class="opt-label">C</span>資料品質問題，成功率不可能為負數</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q6-d')" data-qid="q6"><span class="opt-label">D</span>表示該特工是雙面諜</button>
+        </div>
+        <div class="quiz-explain" id="q6-c"><strong>✅ 正確！</strong> 成功率有效值域為 [0,1] 或 [0%,100%]。-0.15 超出業務邏輯合理範圍，屬於<strong>領域知識型異常值（Domain-based Outlier）</strong>，最可能是錄入錯誤或系統bug，應標記並調查。</div>
+        <div class="quiz-explain" id="q6-a"><strong>❌ 錯誤。</strong> 成功率語義決定它不能為負，這是數據錯誤，不是「失敗多」。</div>
+        <div class="quiz-explain" id="q6-b"><strong>❌ 錯誤。</strong> 業務邏輯清晰，無需更多資料即可判斷為異常。</div>
+        <div class="quiz-explain" id="q6-d"><strong>❌ 錯誤（劇情上很有趣，但資料科學家應基於業務邏輯 😄）。</strong></div>
+      </div>
+    </div>
+
+    <!-- Achievement 2 -->
+    <div class="achievement" id="achieve-2">
+      <span class="achieve-icon">🦸</span>
+      <div class="achieve-title">魔浮斗篷 · 獲得！</div>
+      <div class="achieve-desc">Dormammu 的數據惡靈已被驅逐！斗篷主動飛到奇異博士肩上，以紫色光芒包覆全身…</div>
+    </div>
+  </div><!-- end stage-2 -->
+
+
+  <!-- ════════════════════════════════════
+       STAGE 3 · 懸戒 × PCA 降維
+  ════════════════════════════════════ -->
+  <div id="stage-3" class="story-panel" style="padding-bottom:40px;">
+
+    <div class="chapter-divider">
+      <div class="chapter-num">STAGE III</div>
+      <span class="chapter-emoji">💍</span>
+      <div class="chapter-title">關卡三：懸戒 × PCA降維·穿越維度詛咒</div>
+    </div>
+
+    <!-- Relic Banner -->
+    <div class="relic-banner sling-relic">
+      <div class="relic-banner-icon">💍</div>
+      <div class="relic-banner-content">
+        <div class="relic-banner-name">SLING RING · 懸　戒</div>
+        <div class="relic-banner-desc">
+          懸戒能在空間中劃開<strong style="color:var(--sling-color)">次元之門（Dimensional Portal）</strong>，讓奇異博士穿越高維度空間的壁壘。<strong>PCA（主成分分析）</strong>正是資料世界的懸戒——它打開一扇門，將高維資料投影到低維主成分空間，讓 AI 模型逃脫<strong>維度詛咒（Curse of Dimensionality）</strong>！
+        </div>
+      </div>
+    </div>
+
+    <!-- Story -->
+    <div class="chapter-badge">📖 故事情境</div>
+    <div class="story-box">
+      <div class="story-char">🧙</div>
+      <div class="story-text">
+        <strong>【最終Boss：維度詛咒降臨！】</strong><br>
+        阿迦莫多之眼和魔浮斗篷的戰鬥剛結束——更大的危機出現了！
+        <div class="dialog-tail">
+          「500 個特徵！計算宇宙即將崩塌！<br>
+          我的模型陷入<em>維度詛咒（Curse of Dimensionality）</em>——資料稀疏、過擬合、計算爆炸…<br>
+          戴上<strong>懸戒</strong>！在特徵空間中劃開次元之門！<br>
+          <em>主成分分析（PCA）</em>能找到方差最大的方向，<br>
+          在保留核心資訊的同時，打開通往低維空間的傳送門！」
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge -->
+    <div class="section-title">⚡ 核心知識</div>
+    <div class="section-sub">PRINCIPAL COMPONENT ANALYSIS · 主成分分析</div>
+
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🌀</div>
+        <div class="k-card-title">PCA 是什麼？</div>
+        <div class="k-card-body">無監督降維技術，將高維資料投影到低維空間，<strong>最大化保留方差（資訊量）</strong>。新軸稱為「主成分（Principal Component）」。</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📐</div>
+        <div class="k-card-title">PCA 運作步驟</div>
+        <div class="k-card-body">
+          ① 標準化資料（必要！）<br>
+          ② 計算<span class="tooltip-trigger" data-tip="衡量特徵間的線性關係">協方差矩陣</span><br>
+          ③ 計算特徵值與特徵向量<br>
+          ④ 選取前 k 個主成分<br>
+          ⑤ 投影資料到新空間
+        </div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📈</div>
+        <div class="k-card-title">解釋方差比例 EVR</div>
+        <div class="k-card-body">每個主成分解釋一定比例的總方差。常見做法：保留累積解釋方差達 <strong>80–95%</strong> 的成分數。Scree Plot 視覺化選擇。</div>
+        <div class="k-card-formula">EVR = λᵢ / Σλ  (λ為特徵值)</div>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚠️</div>
+        <div class="k-card-title">PCA 注意事項</div>
+        <div class="k-card-body">
+          ✅ 必須先標準化！<br>
+          ✅ 主成分是原特徵的<strong>線性組合</strong><br>
+          ❌ 失去可解釋性<br>
+          ❌ 僅適用線性關係（非線性用 t-SNE, UMAP）<br>
+          ❌ 分類問題考慮 LDA 替代
+        </div>
+      </div>
+    </div>
+
+    <!-- Python Tip 3 -->
+    <div class="py-tip">
+<div class="py-code"><span class="py-cm"># ── 💍 懸戒：PCA 降維完整流程 ───────────────────────────────</span>
+<span class="py-kw">from</span> <span class="py-cls">sklearn.preprocessing</span> <span class="py-kw">import</span> <span class="py-cls">StandardScaler</span>
+<span class="py-kw">from</span> <span class="py-cls">sklearn.decomposition</span> <span class="py-kw">import</span> <span class="py-cls">PCA</span>
+<span class="py-kw">import</span> <span class="py-cls">numpy</span> <span class="py-kw">as</span> np
+<span class="py-kw">import</span> <span class="py-cls">matplotlib.pyplot</span> <span class="py-kw">as</span> plt
+
+<span class="py-cm"># 假設資料有 100 個特徵</span>
+<span class="py-var">X</span> = np.random.<span class="py-fn">randn</span>(<span class="py-num">1000</span>, <span class="py-num">100</span>)  <span class="py-cm"># 1000 樣本, 100 特徵</span>
+
+<span class="py-cm"># ① 必須先標準化！（PCA 對尺度敏感）</span>
+<span class="py-var">scaler</span> = <span class="py-cls">StandardScaler</span>()
+<span class="py-var">X_std</span>  = <span class="py-var">scaler</span>.<span class="py-fn">fit_transform</span>(<span class="py-var">X</span>)
+
+<span class="py-cm"># ② 初步 PCA（保留全部成分，查看解釋方差）</span>
+<span class="py-var">pca_full</span> = <span class="py-cls">PCA</span>()
+<span class="py-var">pca_full</span>.<span class="py-fn">fit</span>(<span class="py-var">X_std</span>)
+<span class="py-var">evr</span> = <span class="py-var">pca_full</span>.explained_variance_ratio_  <span class="py-cm"># 每個PC的解釋比例</span>
+<span class="py-var">cum_evr</span> = np.<span class="py-fn">cumsum</span>(<span class="py-var">evr</span>)                   <span class="py-cm"># 累積解釋比例</span>
+
+<span class="py-cm"># ③ 選擇保留 95% 方差的成分數</span>
+<span class="py-var">n_comp</span> = np.<span class="py-fn">argmax</span>(<span class="py-var">cum_evr</span> &gt;= <span class="py-num">0.95</span>) + <span class="py-num">1</span>
+<span class="py-fn">print</span>(<span class="py-str">f"保留 95% 方差需要 {n_comp} 個主成分"</span>)
+
+<span class="py-cm"># ④ 執行降維</span>
+<span class="py-var">pca</span> = <span class="py-cls">PCA</span>(n_components=<span class="py-var">n_comp</span>)
+<span class="py-var">X_pca</span> = <span class="py-var">pca</span>.<span class="py-fn">fit_transform</span>(<span class="py-var">X_std</span>)
+<span class="py-fn">print</span>(<span class="py-str">f"降維：{X.shape[1]}維 → {X_pca.shape[1]}維"</span>)
+
+<span class="py-cm"># ⑤ Scree Plot（手肘圖）</span>
+plt.<span class="py-fn">plot</span>(np.<span class="py-fn">cumsum</span>(<span class="py-var">evr</span>[:20]))
+plt.<span class="py-fn">axhline</span>(y=<span class="py-num">0.95</span>, color=<span class="py-str">'r'</span>, linestyle=<span class="py-str">'--'</span>, label=<span class="py-str">'95% threshold'</span>)
+plt.<span class="py-fn">xlabel</span>(<span class="py-str">'Number of Components'</span>); plt.<span class="py-fn">ylabel</span>(<span class="py-str">'Cumulative EVR'</span>)</div>
+      <div class="py-tip-note">
+        💡 <strong style="color:var(--py-green)">iPAS 考試重點：</strong>
+        PCA 前<strong>必須標準化</strong>，否則大尺度特徵主導主成分方向。用 <code style="color:var(--py-blue)">explained_variance_ratio_</code> 查看每個 PC 貢獻，用 <code style="color:var(--py-blue)">n_components=0.95</code> 可直接指定保留 95% 方差的成分數。
+      </div>
+    </div>
+
+    <!-- Demo Zone -->
+    <div class="demo-zone">
+      <div class="section-title" style="margin-bottom:18px;">🌀 懸戒·次元之門</div>
+      <p style="font-size:12px;color:rgba(232,224,208,.7);margin-bottom:16px;line-height:1.8;">
+        神盾局特工資料有 4 個特徵。劃開次元之門，看 PCA 如何保留核心資訊！
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+        <div>
+          <div style="font-size:11px;color:var(--accent);margin-bottom:6px;font-family:'Share Tech Mono',monospace;">PC1 解釋方差比 (%)</div>
+          <input type="range" id="pc1-slider" min="30" max="80" value="65" oninput="updatePCA()" style="width:100%;accent-color:var(--sling-color);">
+          <div><span class="slider-val" id="pc1-val">65%</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--accent);margin-bottom:6px;font-family:'Share Tech Mono',monospace;">樣本點數量</div>
+          <input type="range" id="pca-n-slider" min="20" max="100" value="50" oninput="updatePCA()" style="width:100%;accent-color:var(--sling-color);">
+          <div><span class="slider-val" id="pca-n-val">50</span></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-action" onclick="runPCA()">💍 劃開次元之門</button>
+        <button class="btn-action accent" onclick="showVarianceChart()">📊 解釋方差圖</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;">
+        <div>
+          <div style="font-size:10px;color:var(--accent);margin-bottom:6px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;">原始特徵空間（4維→顯示2D）</div>
+          <div class="chart-wrap" style="height:240px;"><canvas id="pca-original-chart"></canvas></div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--sling-color);margin-bottom:6px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;">PCA降維後（PC1 vs PC2）</div>
+          <div class="chart-wrap" style="height:240px;"><canvas id="pca-reduced-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-wrap" style="margin-top:14px;height:180px;"><canvas id="variance-chart"></canvas></div>
+      <div class="result-panel" id="pca-result"><span style="color:rgba(232,224,208,.4);">▶ 請點擊「劃開次元之門」開始分析…</span></div>
+    </div>
+
+    <!-- McKinsey Stats -->
+    <div class="mck-info">
+      <div class="mck-stat"><span class="mck-stat-val">80-95%</span><span class="mck-stat-label">建議保留方差比例</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">線性</span><span class="mck-stat-label">PCA適用關係類型</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">t-SNE</span><span class="mck-stat-label">非線性降維替代方案</span></div>
+      <div class="mck-stat"><span class="mck-stat-val">標準化</span><span class="mck-stat-label">PCA前必要步驟</span></div>
+    </div>
+
+    <!-- Quiz 3 -->
+    <div class="quiz-section">
+      <div class="section-title" style="margin-bottom:18px;color:var(--accent);">📝 關卡三考題 · PCA降維</div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q7</span>PCA 降維前為何必須先對資料進行標準化？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q7-a')" data-qid="q7"><span class="opt-label">A</span>讓所有特徵呈常態分布</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q7-b')" data-qid="q7"><span class="opt-label">B</span>避免大尺度特徵主導主成分方向</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q7-c')" data-qid="q7"><span class="opt-label">C</span>PCA 要求資料必須是整數</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q7-d')" data-qid="q7"><span class="opt-label">D</span>降低計算複雜度</button>
+        </div>
+        <div class="quiz-explain" id="q7-b"><strong>✅ 正確！</strong> PCA 最大化方差。若薪資方差遠大於年齡，PC1 方向幾乎完全由薪資決定，年齡等特徵無從貢獻。標準化確保每個特徵平等參與主成分計算。</div>
+        <div class="quiz-explain" id="q7-a"><strong>❌ 錯誤。</strong> 標準化不改變分布形狀，不能讓偏態變常態；PCA 也不要求常態分布。</div>
+        <div class="quiz-explain" id="q7-c"><strong>❌ 錯誤。</strong> PCA 完全可以處理浮點數，沒有整數要求。</div>
+        <div class="quiz-explain" id="q7-d"><strong>❌ 錯誤。</strong> 標準化不降低計算複雜度，目的是消除尺度差異。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q8</span>【iPAS樣題】解釋方差比依次：PC1=45%, PC2=25%, PC3=18%, PC4=12%。保留至少 85% 資訊需幾個主成分？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q8-a')" data-qid="q8"><span class="opt-label">A</span>1 個（45%）</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q8-b')" data-qid="q8"><span class="opt-label">B</span>2 個（70%）</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q8-c')" data-qid="q8"><span class="opt-label">C</span>3 個（88%）</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q8-d')" data-qid="q8"><span class="opt-label">D</span>4 個（100%）</button>
+        </div>
+        <div class="quiz-explain" id="q8-c"><strong>✅ 正確！</strong><br>PC1累積45%（未達85%）→ PC1+PC2累積70%（未達）→ PC1+PC2+PC3累積<strong>88%（超過85%！）</strong><br>∴ 選 3 個主成分，從 4 維降至 3 維，保留 88% 資訊。</div>
+        <div class="quiz-explain" id="q8-a"><strong>❌ 錯誤。</strong> 45% &lt; 85%，資訊損失過多。</div>
+        <div class="quiz-explain" id="q8-b"><strong>❌ 錯誤。</strong> 70% &lt; 85%，仍未達標準。</div>
+        <div class="quiz-explain" id="q8-d"><strong>❌ 錯誤。</strong> 保留全部特徵就沒有降維，失去 PCA 意義。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q9</span>【iPAS考古題】以下關於 PCA 與 LDA 的比較，哪項正確？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q9-a')" data-qid="q9"><span class="opt-label">A</span>PCA 和 LDA 都是監督式降維方法</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q9-b')" data-qid="q9"><span class="opt-label">B</span>PCA 無監督；LDA 需類別標籤，更適合分類前處理</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q9-c')" data-qid="q9"><span class="opt-label">C</span>LDA 降維後維度可超過原始特徵數</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q9-d')" data-qid="q9"><span class="opt-label">D</span>PCA 可處理非線性關係</button>
+        </div>
+        <div class="quiz-explain" id="q9-b"><strong>✅ 正確！</strong><br>• <strong>PCA</strong>：無監督，最大化方差，不用標籤<br>• <strong>LDA</strong>：監督式，最大化類間/最小化類內距離，需標籤<br>• LDA 最多降至（類別數-1）個維度</div>
+        <div class="quiz-explain" id="q9-a"><strong>❌ 錯誤。</strong> PCA 是無監督的。</div>
+        <div class="quiz-explain" id="q9-c"><strong>❌ 錯誤。</strong> LDA 最多降至（類別數-1）維，通常遠少於原始特徵數。</div>
+        <div class="quiz-explain" id="q9-d"><strong>❌ 錯誤。</strong> PCA 只能處理線性關係。非線性用 Kernel PCA、t-SNE、UMAP。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q10</span>【綜合題】100個特徵、1000個樣本、分類任務（強/中/弱）。最佳前處理流程為？</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q10-a')" data-qid="q10"><span class="opt-label">A</span>直接建模，不做任何前處理</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q10-b')" data-qid="q10"><span class="opt-label">B</span>先PCA降維，再標準化，最後建模</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'correct','q10-c')" data-qid="q10"><span class="opt-label">C</span>處理異常值 → 標準化 → PCA降維 → 建模</button>
+          <button class="quiz-opt" onclick="answerQuiz(this,'wrong','q10-d')" data-qid="q10"><span class="opt-label">D</span>標準化後直接用決策樹（不需降維）</button>
+        </div>
+        <div class="quiz-explain" id="q10-c"><strong>✅ 正確！完整流程：</strong><br>① <strong>異常值處理</strong>：先清理，避免污染後續步驟<br>② <strong>標準化</strong>：PCA前必要步驟<br>③ <strong>PCA降維</strong>：100維→合適維度，解決維度詛咒<br>④ <strong>建模</strong>：在乾淨低維空間建立分類模型</div>
+        <div class="quiz-explain" id="q10-a"><strong>❌ 錯誤。</strong> 100維特徵直接建模會遭遇維度詛咒、過擬合、計算負荷大。</div>
+        <div class="quiz-explain" id="q10-b"><strong>❌ 錯誤。</strong> 標準化必須在 PCA 之前，且未處理異常值。</div>
+        <div class="quiz-explain" id="q10-d"><strong>❌ 錯誤。</strong> 決策樹雖不需縮放，但 100 特徵仍有過擬合風險；且題目明確有維度問題需處理。</div>
+      </div>
+    </div>
+
+    <!-- Achievement 3 -->
+    <div class="achievement" id="achieve-3">
+      <span class="achieve-icon">💍</span>
+      <div class="achieve-title">懸戒 · 獲得！三件聖器集齊！</div>
+      <div class="achieve-desc">維度詛咒已解除！奇異博士手持三件聖器，在金色光芒中向你豎起大拇指！</div>
+    </div>
+
+    <!-- Final Panel -->
+    <div id="final-panel" style="display:none;text-align:center;padding:56px 36px;background:radial-gradient(ellipse,rgba(201,168,76,.15) 0%,transparent 70%);border:2px solid var(--gold);margin-bottom:36px;">
+      <div style="display:flex;justify-content:center;gap:16px;font-size:52px;margin-bottom:18px;">
+        <span style="animation:floatHero 3s ease-in-out infinite;">🔮</span>
+        <span style="animation:floatHero 3s ease-in-out infinite;animation-delay:.4s;">🧙</span>
+        <span style="animation:floatHero 3s ease-in-out infinite;animation-delay:.8s;">🦸</span>
+        <span style="animation:floatHero 3s ease-in-out infinite;animation-delay:1.2s;">💍</span>
+      </div>
+      <div style="font-family:'Orbitron',monospace;font-size:24px;color:var(--gold);letter-spacing:4px;margin-bottom:10px;">任務完成！聖器全收！</div>
+      <div style="font-size:13px;color:var(--accent);margin-bottom:20px;letter-spacing:3px;font-family:'Share Tech Mono',monospace;">MISSION ACCOMPLISHED · iPAS READY</div>
+      <div style="font-family:'Orbitron',monospace;font-size:56px;color:var(--gold);text-shadow:0 0 30px rgba(201,168,76,.8);" id="final-score-display">0</div>
+      <div style="font-size:13px;color:rgba(232,224,208,.5);margin-bottom:20px;">/ 100 分</div>
+      <div id="final-grade" style="font-family:'Orbitron',monospace;font-size:18px;letter-spacing:3px;margin-bottom:14px;"></div>
+      <div id="final-comment" style="font-size:13px;color:rgba(232,224,208,.8);max-width:480px;margin:0 auto;line-height:1.9;"></div>
+      <button class="btn-start" style="margin-top:22px;" onclick="restartQuest()">🔄 再挑戰一次</button>
+    </div>
+
+  </div><!-- end stage-3 -->
+
+  <footer class="site-footer">
+    STRANGE DATA QUEST · iPAS AI應用規劃師中級·科目二 · 資料前處理三部曲<br>
+    阿迦莫多之眼×資料縮放 ｜ 魔浮斗篷×異常偵測 ｜ 懸戒×PCA降維 · McKINSEY × MARVEL
+  </footer>
+</div><!-- end main-app -->
+
+<script>
+// ── Cursor ──────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const cursorDot = document.getElementById('cursor-dot');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px';
+  cursorDot.style.left = e.clientX+'px'; cursorDot.style.top = e.clientY+'px';
+});
+document.addEventListener('mousedown', () => { cursor.style.width='40px'; cursor.style.height='40px'; });
+document.addEventListener('mouseup',   () => { cursor.style.width='20px'; cursor.style.height='20px'; });
+
+// ── Three.js BG ──────────────────────────────────────────
+const bgCanvas = document.getElementById('bg-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.z = 5;
+
+const geo = new THREE.BufferGeometry();
+const count = 320;
+const pos = new Float32Array(count*3);
+for(let i=0;i<count*3;i++) pos[i]=(Math.random()-.5)*22;
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+const mat = new THREE.PointsMaterial({ size:.05, color:0xC9A84C, transparent:true, opacity:.55 });
+const particles = new THREE.Points(geo, mat);
+scene.add(particles);
+
+const rings=[];
+[[2,.01,0xC9A84C],[2.6,.01,0x00E5CC],[3.2,.01,0x8B2FC9]].forEach(([r,t,c],i)=>{
+  const m=new THREE.Mesh(new THREE.TorusGeometry(r,t,16,100), new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.3-i*.05}));
+  m.rotation.x=Math.PI/2+i*.3; scene.add(m); rings.push(m);
+});
+
+(function animBG(){
+  requestAnimationFrame(animBG);
+  particles.rotation.y+=.0005; particles.rotation.x+=.0002;
+  rings.forEach((r,i)=>{ r.rotation.z+=.003*(i%2?-1:1); r.rotation.y+=.001; });
+  renderer.render(scene,camera);
+})();
+
+window.addEventListener('resize',()=>{
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+});
+
+// ── DOM Particles ───────────────────────────────────────
+const particleContainer=document.getElementById('particles');
+const dataWords=['μ','σ','IQR','PCA','z=','PC1','Q1','λ','∑','SVD','∂','EVR','KNN','SVM','fit()','transform()','outlier','scaler','0.95','sklearn','pandas','np.','Q3','IQR','Robust'];
+function createParticle(){
+  const el=document.createElement('div');
+  el.className='data-particle';
+  el.textContent=dataWords[Math.floor(Math.random()*dataWords.length)];
+  el.style.left=Math.random()*100+'vw';
+  el.style.animationDuration=(9+Math.random()*12)+'s';
+  el.style.animationDelay=(Math.random()*4)+'s';
+  particleContainer.appendChild(el);
+  setTimeout(()=>el.remove(),22000);
+}
+setInterval(createParticle,900);
+
+// ── Scoring & State ─────────────────────────────────────
+let totalScore=0, answeredQ={};
+
+function addScore(pts){
+  totalScore+=pts;
+  document.getElementById('score-display').textContent=totalScore;
+  gsap.from(document.querySelector('.score-box'),{scale:1.3,duration:.3,ease:'back.out'});
+}
+
+// ── Intro → Main ────────────────────────────────────────
+document.getElementById('btn-enter').addEventListener('click',startApp);
+document.getElementById('hero-emoji').addEventListener('click',startApp);
+
+function startApp(){
+  document.getElementById('intro-screen').classList.add('hidden');
+  setTimeout(()=>{
+    document.getElementById('main-app').classList.add('show');
+    initAllCharts();
+    gsap.from('.site-header',{y:-60,opacity:0,duration:.8,ease:'power2.out'});
+    gsap.from('.chapter-divider',{opacity:0,y:40,duration:.8,stagger:.25,ease:'power2.out',delay:.3});
+    gsap.from('.k-card',{opacity:0,y:30,duration:.6,stagger:.08,ease:'power2.out',delay:.5});
+  },800);
+}
+
+// ── Quiz System ─────────────────────────────────────────
+function answerQuiz(btn, result, explainId){
+  const qid=btn.getAttribute('data-qid');
+  if(answeredQ[qid]) return;
+  answeredQ[qid]=true;
+
+  const opts=btn.closest('.quiz-options').querySelectorAll('.quiz-opt');
+  opts.forEach(o=>{ o.classList.add('answered'); o.style.cursor='not-allowed'; });
+
+  if(result==='correct'){
+    btn.classList.add('correct');
+    addScore(10);
+  } else {
+    btn.classList.add('wrong');
+    opts.forEach(o=>{ if(o.getAttribute('onclick').includes("'correct'")) o.classList.add('correct'); });
+  }
+
+  const ex=document.getElementById(explainId);
+  if(ex){ ex.classList.add('show'); gsap.from(ex,{opacity:0,y:-10,duration:.4}); }
+
+  checkAchievements();
+  checkFinalPanel();
+}
+
+function checkAchievements(){
+  const s1=answeredQ.q1&&answeredQ.q2&&answeredQ.q3;
+  const s2=answeredQ.q4&&answeredQ.q5&&answeredQ.q6;
+  const s3=answeredQ.q7&&answeredQ.q8&&answeredQ.q9&&answeredQ.q10;
+
+  if(s1){ unlockAchieve('achieve-1','dot-1','dot-2','badge-eye'); }
+  if(s2){ unlockAchieve('achieve-2','dot-2','dot-3','badge-cloak'); }
+  if(s3){ unlockAchieve('achieve-3','dot-3',null,'badge-sling'); }
+}
+
+function unlockAchieve(achId, dotId, nextDotId, badgeId){
+  const el=document.getElementById(achId);
+  if(el&&!el.classList.contains('show')){
+    el.classList.add('show');
+    document.getElementById(dotId).classList.add('done');
+    if(nextDotId) document.getElementById(nextDotId).classList.add('active');
+    const badge=document.getElementById(badgeId);
+    if(badge){ badge.classList.add('unlocked'); gsap.from(badge,{scale:2,opacity:0,duration:.6,ease:'back.out(2)'}); }
+  }
+}
+
+function checkFinalPanel(){
+  if(['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'].every(q=>answeredQ[q])){
+    setTimeout(showFinalPanel,500);
+  }
+}
+
+function showFinalPanel(){
+  const p=document.getElementById('final-panel');
+  p.style.display='block';
+  gsap.from(p,{opacity:0,scale:.8,duration:.8,ease:'back.out(1.7)'});
+  const el=document.getElementById('final-score-display');
+  gsap.to({val:0},{val:totalScore,duration:1.5,ease:'power2.out',onUpdate:function(){el.textContent=Math.round(this.targets()[0].val);}});
+
+  const grade=document.getElementById('final-grade');
+  const comment=document.getElementById('final-comment');
+  if(totalScore>=90){
+    grade.style.color='#F0D080'; grade.textContent='⭐ 三聖器持有者 · iPAS 卓越資料師';
+    comment.textContent='「阿迦莫多之眼、魔浮斗篷、懸戒——三件聖器你全數掌握！多重宇宙的 AI 模型已安全，Dormammu 永久封印。你，才是真正的資料奇異博士！」';
+  } else if(totalScore>=70){
+    grade.style.color='#4CA8C9'; grade.textContent='🧙 神盾局特級資料師';
+    comment.textContent='「你掌握了大部分核心概念！建議複習答錯題目，再挑戰一次，取回第三件聖器！」';
+  } else if(totalScore>=50){
+    grade.style.color='#E67E22'; grade.textContent='📊 見習資料處理師';
+    comment.textContent='「有潛力！重點複習縮放方法、IQR計算和PCA流程，聖器在等著你！」';
+  } else {
+    grade.style.color='#C0392B'; grade.textContent='🔮 魔法學徒';
+    comment.textContent='「回到各關卡仔細閱讀知識卡片和 Python 提示，紮實的基礎才能掌握三件聖器！」';
+  }
+}
+
+function restartQuest(){
+  totalScore=0; answeredQ={};
+  document.getElementById('score-display').textContent='0';
+  document.getElementById('final-panel').style.display='none';
+  document.querySelectorAll('.quiz-opt').forEach(o=>{ o.classList.remove('correct','wrong','answered'); o.style.cursor=''; });
+  document.querySelectorAll('.quiz-explain').forEach(e=>e.classList.remove('show'));
+  document.querySelectorAll('.achievement').forEach(a=>a.classList.remove('show'));
+  document.querySelectorAll('.stage-dot').forEach(d=>d.classList.remove('done','active'));
+  document.getElementById('dot-1').classList.add('active');
+  document.querySelectorAll('.relic-badge').forEach(b=>b.classList.remove('unlocked'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function scrollToStage(n){ document.getElementById('stage-'+n).scrollIntoView({behavior:'smooth'}); }
+
+// ── Stage 1: Scaling ────────────────────────────────────
+const heroData=[
+  {name:'🦇 蝙蝠俠',age:38,power:1500,hours:4000},
+  {name:'🕷️ 蜘蛛人',age:17,power:7500,hours:800},
+  {name:'🔨 雷神',  age:1500,power:9800,hours:120},
+  {name:'💪 浩克',  age:45,power:9999,hours:200},
+  {name:'🏹 鷹眼',  age:42,power:1200,hours:5000},
+  {name:'🐾 黑豹',  age:35,power:4500,hours:3500},
+  {name:'💀 骷髏奇兵',age:29,power:2800,hours:2000},
+];
+
+function populateTable(){
+  document.getElementById('data-tbody').innerHTML=heroData.map(h=>`
+    <tr>
+      <td>${h.name}</td><td>${h.age}</td><td>${h.power}</td><td>${h.hours}</td>
+      <td class="td-scaled" id="scaled-${h.name.replace(/\s/g,'')}">—</td>
+    </tr>`).join('');
+}
+
+const getVals=f=>heroData.map(h=>h[f]);
+const minMax=v=>{const mn=Math.min(...v),mx=Math.max(...v);return v.map(x=>((x-mn)/(mx-mn)).toFixed(4));};
+const zscore=v=>{const m=v.reduce((a,b)=>a+b,0)/v.length,s=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length);return v.map(x=>((x-m)/s).toFixed(4));};
+const robust=v=>{const s=[...v].sort((a,b)=>a-b),q1=s[Math.floor(s.length*.25)],q2=s[Math.floor(s.length*.5)],q3=s[Math.floor(s.length*.75)];return v.map(x=>((x-q2)/(q3-q1)).toFixed(4));};
+
+let scaleChart=null;
+function applyScaling(){
+  const mth=document.getElementById('scale-method').value;
+  const fea=document.getElementById('scale-feature').value;
+  const vals=getVals(fea);
+  const scaled=mth==='minmax'?minMax(vals):mth==='zscore'?zscore(vals):robust(vals);
+  const mName={minmax:'Min-Max',zscore:'Z-Score',robust:'Robust Scaler'}[mth];
+  document.getElementById('scaled-col-head').textContent='→ '+mName+' 縮放後';
+  heroData.forEach((h,i)=>{
+    const id='scaled-'+h.name.replace(/\s/g,'');
+    const el=document.getElementById(id);
+    if(el) el.textContent=scaled[i];
+  });
+  if(scaleChart) scaleChart.destroy();
+  const ctx=document.getElementById('scale-chart').getContext('2d');
+  scaleChart=new Chart(ctx,{type:'bar',data:{labels:heroData.map(h=>h.name),datasets:[
+    {label:'原始值',data:vals,backgroundColor:'rgba(201,168,76,.35)',borderColor:'#C9A84C',borderWidth:1},
+    {label:mName,data:scaled.map(Number),backgroundColor:'rgba(0,229,204,.3)',borderColor:'#00E5CC',borderWidth:1}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0',font:{family:'Share Tech Mono'}}}},scales:{x:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}},y:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}}}}});
+  const mean=scaled.map(Number).reduce((a,b)=>a+b,0)/scaled.length;
+  const fN={age:'年齡',power:'力量指數',hours:'訓練時數'}[fea];
+  document.getElementById('scale-result').innerHTML=`<span class="highlight">✅ [${mName}] 縮放完成！</span><br>特徵：<span class="highlight">${fN}</span> | 原始範圍：[${Math.min(...vals)}, ${Math.max(...vals)}]<br>縮放後範圍：[${Math.min(...scaled.map(Number)).toFixed(4)}, ${Math.max(...scaled.map(Number)).toFixed(4)}] | 均值：<span class="${Math.abs(mean)<.1?'ok':'warn'}">${mean.toFixed(4)}</span>${mth==='zscore'?'<br><span class="ok">→ Z-Score：均值≈0，標準差≈1 ✓</span>':''}${mth==='minmax'?'<br><span class="ok">→ Min-Max：值域=[0,1] ✓</span>':''}`;
+}
+
+function showDistChart(){
+  const fea=document.getElementById('scale-feature').value;
+  const vals=getVals(fea);
+  if(scaleChart) scaleChart.destroy();
+  const ctx=document.getElementById('scale-chart').getContext('2d');
+  scaleChart=new Chart(ctx,{type:'scatter',data:{datasets:[{label:'原始分布',data:vals.map((v,i)=>({x:i,y:v})),backgroundColor:'#C9A84C',pointRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0'}}},scales:{x:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}},y:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}}}}});
+}
+
+function compareAll(){
+  const fea=document.getElementById('scale-feature').value;
+  const vals=getVals(fea);
+  const mm=minMax(vals).map(Number),zs=zscore(vals).map(Number),rb=robust(vals).map(Number);
+  if(scaleChart) scaleChart.destroy();
+  const ctx=document.getElementById('scale-chart').getContext('2d');
+  scaleChart=new Chart(ctx,{type:'line',data:{labels:heroData.map(h=>h.name),datasets:[
+    {label:'Min-Max',data:mm,borderColor:'#C9A84C',backgroundColor:'transparent',tension:.4},
+    {label:'Z-Score',data:zs,borderColor:'#00E5CC',backgroundColor:'transparent',tension:.4},
+    {label:'Robust', data:rb,borderColor:'#FF9500',backgroundColor:'transparent',tension:.4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0',font:{family:'Share Tech Mono'}}}},scales:{x:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}},y:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}}}}});
+  document.getElementById('scale-result').innerHTML=`<span class="highlight">📊 三法比較</span><br><span style="color:#C9A84C">Min-Max</span>：[${Math.min(...mm).toFixed(3)}, ${Math.max(...mm).toFixed(3)}] | <span style="color:#00E5CC">Z-Score</span>：[${Math.min(...zs).toFixed(3)}, ${Math.max(...zs).toFixed(3)}] | <span style="color:#FF9500">Robust</span>：[${Math.min(...rb).toFixed(3)}, ${Math.max(...rb).toFixed(3)}]`;
+}
+
+// ── Stage 2: Outliers ────────────────────────────────────
+let outlierData=[45,52,48,61,55,999,43,58,47,-200,50,62,44,57,300];
+let outChart=null;
+
+function parseCustomData(){
+  outlierData=document.getElementById('custom-data').value.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v));
+  document.getElementById('outlier-result').innerHTML=`<span class="ok">✅ 載入 ${outlierData.length} 筆</span>`;
+}
+function resetOutlierData(){
+  outlierData=[45,52,48,61,55,999,43,58,47,-200,50,62,44,57,300];
+  document.getElementById('custom-data').value=outlierData.join(', ');
+  document.getElementById('outlier-result').innerHTML=`<span class="ok">✅ 資料已重置</span>`;
+  if(outChart){outChart.destroy();outChart=null;}
+}
+
+function getBounds(method){
+  const sorted=[...outlierData].sort((a,b)=>a-b);
+  if(method==='iqr'){
+    const q1=sorted[Math.floor(sorted.length*.25)],q3=sorted[Math.floor(sorted.length*.75)],iqr=q3-q1;
+    return {lower:q1-1.5*iqr,upper:q3+1.5*iqr,q1,q3,iqr,method:'iqr'};
+  }
+  const mean=outlierData.reduce((a,b)=>a+b,0)/outlierData.length;
+  const std=Math.sqrt(outlierData.reduce((a,b)=>a+(b-mean)**2,0)/outlierData.length);
+  const thr=method==='zscore'?2:3;
+  return {lower:mean-thr*std,upper:mean+thr*std,mean,std,thr,method};
+}
+
+function detectOutliers(){
+  const b=getBounds(document.getElementById('detect-method').value);
+  const outliers=outlierData.filter(v=>v<b.lower||v>b.upper);
+  if(outChart) outChart.destroy();
+  const ctx=document.getElementById('outlier-chart').getContext('2d');
+  const colors=outlierData.map(v=>outliers.includes(v)?'rgba(192,57,43,.9)':'rgba(39,174,96,.7)');
+  outChart=new Chart(ctx,{type:'bar',data:{labels:outlierData.map((_,i)=>'#'+(i+1)),datasets:[{label:'資料值',data:outlierData,backgroundColor:colors,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0',font:{family:'Share Tech Mono'}}}},scales:{x:{ticks:{color:'#E8E0D0',font:{size:10}},grid:{color:'rgba(201,168,76,.08)'}},y:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.08)'}}}}});
+  const mN={iqr:'IQR四分位距法',zscore:'Z-Score(|z|>2)',zscore3:'Z-Score(|z|>3)'}[document.getElementById('detect-method').value];
+  const detail=b.method==='iqr'?`Q1=${b.q1.toFixed(1)}, Q3=${b.q3.toFixed(1)}, IQR=${b.iqr.toFixed(1)}, 下界=${b.lower.toFixed(1)}, 上界=${b.upper.toFixed(1)}`:`μ=${b.mean.toFixed(1)}, σ=${b.std.toFixed(1)}, 閾值=±${b.thr}σ, 下界=${b.lower.toFixed(1)}, 上界=${b.upper.toFixed(1)}`;
+  document.getElementById('outlier-result').innerHTML=`<span class="highlight">🦸 [${mN}] 偵測完成</span><br>${detail}<br><span class="err">⚠️ 異常值 ${outliers.length} 個：[${outliers.join(', ')}]</span><br><span class="ok">✅ 正常值 ${outlierData.length-outliers.length} 個</span>`;
+}
+
+function handleOutliers(){
+  const b=getBounds(document.getElementById('detect-method').value);
+  const hm=document.getElementById('handle-method').value;
+  const outliers=outlierData.filter(v=>v<b.lower||v>b.upper);
+  const sorted=[...outlierData].sort((a,b)=>a-b);
+  const median=sorted[Math.floor(sorted.length/2)];
+  let msg='';
+  if(hm==='remove') msg=`🗑️ 已刪除 ${outliers.length} 個異常值，剩餘 ${outlierData.length-outliers.length} 筆`;
+  else if(hm==='cap') msg=`📦 Winsorize：超界值截斷至 [${b.lower.toFixed(1)}, ${b.upper.toFixed(1)}]`;
+  else if(hm==='median') msg=`🔄 已替換異常值為中位數 ${median}`;
+  else msg=`🏷️ 已標記 ${outliers.length} 個異常值（保留原數值）`;
+  document.getElementById('outlier-result').innerHTML+=`<br><span class="ok">${msg}</span>`;
+}
+
+// ── Stage 3: PCA ─────────────────────────────────────────
+let pcaOrig=null,pcaRed=null,varC=null;
+
+function generatePCAData(n){
+  const d=[];
+  for(let i=0;i<n;i++){
+    const t=Math.floor(Math.random()*3);
+    const b=t===0?[70,80,75,72]:t===1?[40,50,45,48]:[20,30,25,28];
+    d.push({age:b[0]+(Math.random()-.5)*22,power:b[1]+(Math.random()-.5)*22,speed:b[2]+(Math.random()-.5)*22,reaction:b[3]+(Math.random()-.5)*22,type:t});
+  }
+  return d;
+}
+
+const tColors=['rgba(201,168,76,.8)','rgba(0,229,204,.8)','rgba(139,47,201,.8)'];
+const tNames=['精英特工','中級特工','見習特工'];
+
+function runPCA(){
+  const n=parseInt(document.getElementById('pca-n-slider').value);
+  const data=generatePCAData(n);
+  const pc1r=parseInt(document.getElementById('pc1-slider').value)/100;
+  const pc2r=(1-pc1r)*.6;
+
+  if(pcaOrig) pcaOrig.destroy();
+  const ctx1=document.getElementById('pca-original-chart').getContext('2d');
+  pcaOrig=new Chart(ctx1,{type:'scatter',data:{datasets:[0,1,2].map(t=>({label:tNames[t],data:data.filter(d=>d.type===t).map(d=>({x:d.age,y:d.power})),backgroundColor:tColors[t],pointRadius:5}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0',font:{size:10}}}},scales:{x:{title:{display:true,text:'年齡',color:'#C9A84C'},ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.06)'}},y:{title:{display:true,text:'力量',color:'#C9A84C'},ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.06)'}}}}});
+
+  if(pcaRed) pcaRed.destroy();
+  const ctx2=document.getElementById('pca-reduced-chart').getContext('2d');
+  pcaRed=new Chart(ctx2,{type:'scatter',data:{datasets:[0,1,2].map(t=>({label:tNames[t],data:data.filter(d=>d.type===t).map(d=>({x:(d.age*.5+d.power*.5+d.speed*.35+d.reaction*.35)/80*10+(Math.random()-.5)*1.5,y:(d.age*.4-d.power*.4+d.speed*.5-d.reaction*.3)/40*5+(Math.random()-.5)*1.5})),backgroundColor:tColors[t],pointRadius:5}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0',font:{size:10}}}},scales:{x:{title:{display:true,text:'PC1',color:'#FF9500'},ticks:{color:'#E8E0D0'},grid:{color:'rgba(255,149,0,.06)'}},y:{title:{display:true,text:'PC2',color:'#FF9500'},ticks:{color:'#E8E0D0'},grid:{color:'rgba(255,149,0,.06)'}}}}});
+
+  showVarianceChart(pc1r,pc2r);
+  document.getElementById('pca-result').innerHTML=`<span class="highlight">💍 PCA 降維完成！次元之門打開！</span><br>原始維度：<span class="highlight">4</span> → 降維後：<span class="ok">2</span><br>PC1 解釋方差：<span class="highlight">${(pc1r*100).toFixed(1)}%</span> | PC2：<span class="highlight">${(pc2r*100).toFixed(1)}%</span><br>累積解釋方差：<span class="${(pc1r+pc2r)>=.8?'ok':'warn'}">${((pc1r+pc2r)*100).toFixed(1)}%</span> ${(pc1r+pc2r)>=.8?'<span class="ok">✅ 達80%閾值！</span>':'<span class="warn">⚠️ 未達80%閾值</span>'}`;
+}
+
+function showVarianceChart(pc1=.65,pc2=.21){
+  const rem=1-pc1-pc2;
+  const evr=[pc1,pc2,rem*.65,rem*.35];
+  const cum=evr.map((_,i)=>evr.slice(0,i+1).reduce((a,b)=>a+b,0));
+  if(varC) varC.destroy();
+  const ctx=document.getElementById('variance-chart').getContext('2d');
+  varC=new Chart(ctx,{type:'bar',data:{labels:['PC1','PC2','PC3','PC4'],datasets:[
+    {label:'解釋方差比(EVR)',data:evr.map(v=>(v*100).toFixed(1)),backgroundColor:['rgba(201,168,76,.7)','rgba(0,229,204,.7)','rgba(139,47,201,.5)','rgba(192,57,43,.4)'],borderColor:['#C9A84C','#00E5CC','#8B2FC9','#C0392B'],borderWidth:1,yAxisID:'y'},
+    {label:'累積解釋方差',data:cum.map(v=>(v*100).toFixed(1)),type:'line',borderColor:'#27AE60',backgroundColor:'transparent',pointBackgroundColor:'#27AE60',pointRadius:5,yAxisID:'y'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#E8E0D0',font:{family:'Share Tech Mono',size:10}}}},scales:{x:{ticks:{color:'#E8E0D0'},grid:{color:'rgba(201,168,76,.06)'}},y:{ticks:{color:'#E8E0D0',callback:v=>v+'%'},grid:{color:'rgba(201,168,76,.06)'},max:100}}}});
+}
+
+function updatePCA(){
+  document.getElementById('pc1-val').textContent=document.getElementById('pc1-slider').value+'%';
+  document.getElementById('pca-n-val').textContent=document.getElementById('pca-n-slider').value;
+}
+
+// ── Init ────────────────────────────────────────────────
+function initAllCharts(){
+  populateTable();
+  showVarianceChart();
+  setTimeout(()=>{ if(document.getElementById('outlier-chart')) detectOutliers(); },500);
+}
+
+// Intersection Observer
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const n=e.target.id.replace('stage-','');
+      document.getElementById('dot-'+n).classList.add('active');
+    }
+  });
+},{threshold:.2});
+
+setTimeout(()=>{
+  ['stage-1','stage-2','stage-3'].forEach(id=>{ const el=document.getElementById(id); if(el) io.observe(el); });
+},1000);
+</script>
+</body>
+</html>
