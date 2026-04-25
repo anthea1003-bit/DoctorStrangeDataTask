@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奇異博士的資料異常修復任務 | iPAS AI 中級</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        /* McKinsey 風格配色：深海藍、專業白、香檳金、科技青 */
+        :root {
+            --bg-dark: #051C2C;
+            --text-main: #FFFFFF;
+            --text-secondary: #A0B2C0;
+            --accent-gold: #C0A062;
+            --accent-cyan: #00A9B5;
+            --alert-red: #D93838;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* 左側 UI 面板 */
+        #ui-panel {
+            width: 400px;
+            height: 100%;
+            background: rgba(5, 28, 44, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            box-sizing: border-box;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+
+        /* 右側 3D 畫布 */
+        #canvas-container {
+            flex-grow: 1;
+            height: 100%;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: var(--accent-gold);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .character-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--accent-cyan);
+        }
+
+        .character-icon {
+            font-size: 40px;
+            margin-right: 15px;
+        }
+
+        .dialogue {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .stage-btn {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-main);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stage-btn:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 169, 181, 0.1);
+        }
+
+        .stage-btn.active {
+            border-color: var(--accent-gold);
+            background: rgba(192, 160, 98, 0.15);
+        }
+
+        .stage-title {
+            font-size: 16px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stage-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 資訊面板 */
+        #info-panel {
+            margin-top: auto;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <h1>多重宇宙資料修復任務</h1>
+        <h2>iPAS AI 中級：資料預處理與特徵工程</h2>
+
+        <div class="character-box">
+            <div class="character-icon">🧙‍♂️</div>
+            <div class="dialogue" id="dr-strange-dialogue">
+                「時間變異管理局的資料庫被破壞了！維度參數極度混亂，我們必須依序執行標準化、隔離異常，最後進行降維，才能看清真相。」
+            </div>
+        </div>
+
+        <button class="stage-btn" onclick="triggerStage(1)" id="btn-stage1">
+            <span class="stage-title">關卡一：資料縮放 (Data Scaling)</span>
+            <span class="stage-desc">處理特徵尺度差異，使用 StandardScaler 收斂混亂的維度變異。</span>
+        </button>
+
+        <button class="stage-btn" onclick="triggerStage(2)" id="btn-stage2">
+            <span class="stage-title">關卡二：異常偵測 (Anomaly Detection)</span>
+            <span class="stage-desc">套用 Isolation Forest，精準標記並隔離多重宇宙的惡意雜訊。</span>
+        </button>
+
+        <button class="stage-btn" onclick="triggerStage(3)" id="btn-stage3">
+            <span class="stage-title">關卡三：PCA 降維 (Dimensionality Reduction)</span>
+            <span class="stage-desc">尋找最大變異方向，將高維資料投影至二維魔法陣，去除共線性。</span>
+        </button>
+
+        <div id="info-panel">
+            <strong>核心知識點：</strong><br>
+            等待任務指令...
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script>
+        // --- 1. Three.js 場景初始化 ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        // 麥肯錫風格背景色
+        scene.background = new THREE.Color(0x051C2C);
+        // 添加環境霧化效果增強空間感
+        scene.fog = new THREE.FogExp2(0x051C2C, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 200;
+        camera.position.y = 50;
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // --- 2. 建立資料粒子系統 ---
+        const particleCount = 2000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const originalPositions = new Float32Array(particleCount * 3);
+        
+        // 初始狀態：極度混亂的散佈 (模擬未縮放前的原始資料)
+        const colorCyan = new THREE.Color(0x00A9B5);
+        for (let i = 0; i < particleCount; i++) {
+            // 刻意製造極大的尺度差異 (例如 X 軸很小，Y 軸極大)
+            positions[i * 3] = (Math.random() - 0.5) * 50;       // X: -25 to 25
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 800;  // Y: -400 to 400 (異常巨大)
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 200;  // Z: -100 to 100
+            
+            originalPositions[i * 3] = positions[i * 3];
+            originalPositions[i * 3 + 1] = positions[i * 3 + 1];
+            originalPositions[i * 3 + 2] = positions[i * 3 + 2];
+
+            colors[i * 3] = colorCyan.r;
+            colors[i * 3 + 1] = colorCyan.g;
+            colors[i * 3 + 2] = colorCyan.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 2.5,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // --- 3. 動畫與互動邏輯 ---
+        function animate() {
+            requestAnimationFrame(animate);
+            // 輕微自轉增加視覺活力
+            particles.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 響應視窗大小調整
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // --- 4. 關卡觸發邏輯 (GSAP 動畫 + iPAS 知識點) ---
+        const dialogues = {
+            1: "「很好！特徵尺度統一了。在 KNN 或 SVM 這種基於距離的模型中，若不進行標準化，大尺度的特徵會完全主導運算結果。」",
+            2: "「看見那些紅色的異常點了嗎？Isolation Forest 利用隨機切割將異常點快速孤立，它們的樹深度明顯低於正常資料。」",
+            3: "「魔法陣啟動！PCA 透過正交轉換，將高維資料投影到變異數最大的主成分上。我們捨棄了 Z 軸（雜訊），保留了最大資訊量。」"
+        };
+
+        const infoTexts = {
+            1: "<strong>考點：資料縮放</strong><br>• Min-Max 縮放：受離群值影響大。<br>• Standard 縮放 (Z-score)：轉為平均值 0，標準差 1，對離群值較具抵抗力。",
+            2: "<strong>考點：異常偵測</strong><br>• Isolation Forest：非監督式樹狀模型，適合高維度資料。<br>• Z-score 方法：僅適合常態分佈的一維資料。",
+            3: "<strong>考點：PCA 主成分分析</strong><br>• 目的：消除特徵共線性、降低維度災難。<br>• 原理：計算共變異數矩陣的特徵值與特徵向量。"
+        };
+
+        function triggerStage(stage) {
+            // UI 更新
+            document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-stage${stage}`).classList.add('active');
+            document.getElementById('dr-strange-dialogue').innerText = dialogues[stage];
+            document.getElementById('info-panel').innerHTML = infoTexts[stage];
+
+            const posAttribute = geometry.attributes.position;
+            const colAttribute = geometry.attributes.color;
+            const targetPositions = new Float32Array(particleCount * 3);
+            const targetColors = new Float32Array(particleCount * 3);
+
+            const colorGold = new THREE.Color(0xC0A062);
+            const colorRed = new THREE.Color(0xD93838);
+
+            if (stage === 1) {
+                // 關卡 1：標準化 (StandardScaler) - 將資料收斂為球狀/正方體分佈
+                for (let i = 0; i < particleCount; i++) {
+                    targetPositions[i * 3] = (Math.random() - 0.5) * 100;
+                    targetPositions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+                    targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+                    
+                    targetColors[i*3] = colorCyan.r;
+                    targetColors[i*3+1] = colorCyan.g;
+                    targetColors[i*3+2] = colorCyan.b;
+                }
+            } 
+            else if (stage === 2) {
+                // 關卡 2：異常偵測 - 標示邊緣的點為紅色並向外推擠
+                for (let i = 0; i < particleCount; i++) {
+                    const x = posAttribute.getX(i);
+                    const y = posAttribute.getY(i);
+                    const z = posAttribute.getZ(i);
+                    const dist = Math.sqrt(x*x + y*y + z*z);
+
+                    if (dist > 75 || Math.random() > 0.95) { // 模擬 5% 異常點
+                        targetPositions[i * 3] = x * 1.5;
+                        targetPositions[i * 3 + 1] = y * 1.5;
+                        targetPositions[i * 3 + 2] = z * 1.5;
+                        targetColors[i*3] = colorRed.r;
+                        targetColors[i*3+1] = colorRed.g;
+                        targetColors[i*3+2] = colorRed.b;
+                    } else {
+                        targetPositions[i * 3] = x;
+                        targetPositions[i * 3 + 1] = y;
+                        targetPositions[i * 3 + 2] = z;
+                        targetColors[i*3] = colorCyan.r;
+                        targetColors[i*3+1] = colorCyan.g;
+                        targetColors[i*3+2] = colorCyan.b;
+                    }
+                }
+            } 
+            else if (stage === 3) {
+                // 關卡 3：PCA - 將 3D 壓平至 2D 平面 (捨棄 Z 軸)，並旋轉視角
+                for (let i = 0; i < particleCount; i++) {
+                    const x = posAttribute.getX(i);
+                    const y = posAttribute.getY(i);
+                    // 將資料投影至 2D 平面 (魔法陣)
+                    targetPositions[i * 3] = x;
+                    targetPositions[i * 3 + 1] = y;
+                    targetPositions[i * 3 + 2] = 0; // Z 軸降維為 0
+                    
+                    // 轉為奇異博士法陣的金色
+                    targetColors[i*3] = colorGold.r;
+                    targetColors[i*3+1] = colorGold.g;
+                    targetColors[i*3+2] = colorGold.b;
+                }
+                
+                // 相機平滑移動至正視角
+                gsap.to(camera.position, { x: 0, y: 0, z: 150, duration: 2, ease: "power2.inOut" });
+            }
+
+            // 使用 GSAP 執行粒子位移與顏色漸變動畫
+            const dummy = { t: 0 };
+            gsap.to(dummy, {
+                t: 1,
+                duration: 2,
+                ease: "power2.out",
+                onUpdate: () => {
+                    for (let i = 0; i < particleCount; i++) {
+                        // 插值計算位置
+                        const currentX = THREE.MathUtils.lerp(posAttribute.getX(i), targetPositions[i * 3], dummy.t);
+                        const currentY = THREE.MathUtils.lerp(posAttribute.getY(i), targetPositions[i * 3 + 1], dummy.t);
+                        const currentZ = THREE.MathUtils.lerp(posAttribute.getZ(i), targetPositions[i * 3 + 2], dummy.t);
+                        posAttribute.setXYZ(i, currentX, currentY, currentZ);
+
+                        // 插值計算顏色
+                        const currentR = THREE.MathUtils.lerp(colAttribute.getX(i), targetColors[i * 3], dummy.t);
+                        const currentG = THREE.MathUtils.lerp(colAttribute.getY(i), targetColors[i * 3 + 1], dummy.t);
+                        const currentB = THREE.MathUtils.lerp(colAttribute.getZ(i), targetColors[i * 3 + 2], dummy.t);
+                        colAttribute.setXYZ(i, currentR, currentG, currentB);
+                    }
+                    posAttribute.needsUpdate = true;
+                    colAttribute.needsUpdate = true;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
